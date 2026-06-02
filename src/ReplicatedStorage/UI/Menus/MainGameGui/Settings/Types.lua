@@ -15,4 +15,3 @@ export type SettingsGui = ScreenGui & {
 }
 
 return Types
-

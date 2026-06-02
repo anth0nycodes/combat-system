@@ -30,11 +30,10 @@ local creditsGuiTemplate = RS.Assets.GUIs.CreditsGui :: MainMenuGuiTypes.Credits
 local creditsGui = creditsGuiTemplate:Clone()
 local creditsMenu = creditsGui.CreditsMenu
 local creditsMenuScale = creditsMenu.UIScale
-local isCreditsOpen = false
 
 -- Inputs
-local playButtonAction = RS.Inputs.GUIs.MainMenu.Play
-local creditsButtonAction = RS.Inputs.GUIs.MainMenu.Credits
+local playButtonAction = RS.Inputs.GUIs.MainMenu.PlayButton
+local creditsButtonAction = RS.Inputs.GUIs.MainMenu.CreditsButton
 
 -- SFX
 local buttonPress = RS.Assets.SFX.GuiButtonPress
@@ -51,45 +50,47 @@ local mouse = player:GetMouse()
 
 local function UpdateCamera()
 	local cameraCenter = cameraPart.CFrame
-	currentCamera.CFrame = cameraPart.CFrame * CFrame.Angles(math.rad(-(mouse.Y - cameraCenter.Y) / MOVE_SPEED), math.rad(-(mouse.X - cameraCenter.Y) / MOVE_SPEED), 0)
+	currentCamera.CFrame = cameraPart.CFrame
+		* CFrame.Angles(
+			math.rad(-(mouse.Y - cameraCenter.Y) / MOVE_SPEED),
+			math.rad(-(mouse.X - cameraCenter.Y) / MOVE_SPEED),
+			0
+		)
 end
 
-MainMenu.Config = {
-	playClicked = false
-}
+-- Module Config
+local isCreditsOpen = false
 
 function MainMenu.Init()
-	playButtonAction.LMB.UIButton = playButton
-	creditsButtonAction.LMB.UIButton = creditsButton
+	playButtonAction.TapAndClick.UIButton = playButton
+	creditsButtonAction.TapAndClick.UIButton = creditsButton
 	mainMenuGui.Parent = playerGui
 	creditsGui.Parent = playerGui
-	
+
 	local connection = RunService.RenderStepped:Connect(UpdateCamera)
-	
+
 	playButtonAction.Pressed:Connect(function()
 		buttonPress:Play()
 	end)
-	
+
 	playButtonAction.Released:Connect(function()
 		buttonRelease:Play()
-		
+
 		-- Initialize all main game GUIs
 		MainGameGui.Init()
-		
-		MainMenu.Config.playClicked = true
 		connection:Disconnect()
 		mainMenuGui:Destroy()
 		creditsGui:Destroy()
 	end)
-	
+
 	creditsButtonAction.Pressed:Connect(function()
 		buttonPress:Play()
 	end)
-	
+
 	creditsButtonAction.Released:Connect(function()
 		buttonRelease:Play()
 		isCreditsOpen = not isCreditsOpen
-		TS:Create(creditsMenuScale, TweenInfo.new(.25), {Scale = if isCreditsOpen then 1 else 0}):Play()
+		TS:Create(creditsMenuScale, TweenInfo.new(0.25), { Scale = if isCreditsOpen then 1 else 0 }):Play()
 	end)
 end
 

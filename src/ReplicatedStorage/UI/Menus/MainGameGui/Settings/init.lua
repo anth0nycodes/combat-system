@@ -12,7 +12,7 @@ assert(player, "Player is not defined")
 local playerGui = player.PlayerGui
 
 -- Types
-local Types = require(script.Parent.Types)
+local Types = require(script.Types)
 
 -- GUI Template
 local settingsGuiTemplate = RS.Assets.GUIs.SettingsGui :: Types.SettingsGui
@@ -27,36 +27,42 @@ local showHitboxOption = settingsOptions.ShowHitbox
 local hitboxOptionCheckbox = showHitboxOption.Checkbox
 
 -- Inputs
-local settingsButtonAction = RS.Inputs.GUIs.MainGame.Settings
+local combatContext = RS.Inputs.Combat
+local settingsButtonAction = RS.Inputs.GUIs.MainGame.SettingsButton
 
 -- SFX
 local buttonPress = RS.Assets.SFX.GuiButtonPress
 local buttonRelease = RS.Assets.SFX.GuiButtonRelease
 
--- Can refactor this later if more options are added
+-- Module Config
+local isSettingsOpen = false
 SettingsModule.Config = {
-	isSettingsOpen = false,
 	isHitboxChecked = false,
 }
--- Can refactor this later if more options are added
+
 function SettingsModule.Init()
-	settingsButtonAction.LMB.UIButton = settingsButton
+	settingsButtonAction.TapAndClick.UIButton = settingsButton
 	settingsGui.Parent = playerGui
 	settingsButtonAction.Pressed:Connect(SettingsModule.ToggleVisibility)
+	settingsButtonAction.Released:Connect(function()
+		buttonRelease:Play()
+		local scaleAmount = if isSettingsOpen then 1 else 0
+		local toggleTween =
+			TS:Create(settingsMenuScale, TweenInfo.new(0.25, Enum.EasingStyle.Quad), { Scale = scaleAmount })
+		toggleTween:Play()
+	end)
 	SettingsModule.HandleOptionChecked()
 end
 
 function SettingsModule.ToggleVisibility()
 	buttonPress:Play()
-	SettingsModule.Config.isSettingsOpen = not SettingsModule.Config.isSettingsOpen
-	
-	settingsButtonAction.Released:Connect(function()
-		buttonRelease:Play()
-		local scaleAmount = if SettingsModule.Config.isSettingsOpen then 1 else 0
-		local toggleTween = TS:Create(settingsMenuScale, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {Scale = scaleAmount})
-		toggleTween:Play()
-	end)
+	isSettingsOpen = not isSettingsOpen
 
+	if isSettingsOpen then
+		combatContext.Enabled = false
+	else
+		combatContext.Enabled = true
+	end
 end
 
 function SettingsModule.HandleOptionChecked()
