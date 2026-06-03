@@ -1,41 +1,28 @@
 --!strict
-
 -- Types
 local Types = require(script.Parent.Types)
-
 local CombatServiceClient = {} :: Types.CombatServiceClientType
 
 -- Game Services
 local RS = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
+
+-- Fighter Config
+local Fighters = RS.Shared.Fighters
+local fighter = Fighters.Brawler -- Default to Brawler for now, can change later when implementing fighter selection logic
+local fighterConfigModule = require(fighter)
+local fighterConfig = fighterConfigModule.FighterConfig
 
 -- Modules
 local HitboxClientModule = require(RS.Shared.Modules.Game.Hitbox)
 local SettingsModule = require(RS.UI.Menus.MainGameGui.Settings)
 
+-- Utils
+local AnimationLoader = require(RS.Utils.AnimationLoader)
+
 -- Combat Actions
 local m1Action = RS.Inputs.Combat.M1
 
--- Animations
-local AnimationLoader = require(RS.Utils.AnimationLoader)
-local BrawlerAnimations = RS.Assets.Animations.Brawler
-local Animations = {
-	BrawlerAnimations.M1One,
-	BrawlerAnimations.M1Two,
-	BrawlerAnimations.M1Three,
-}
-
--- Players
-local player = Players.LocalPlayer
-if not player then return end
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid") :: Humanoid
-
--- SFX
-local NormalStrike = RS.Assets.SFX.NormalStrike
-local HeavyStrike = RS.Assets.SFX.HeavyStrike
-
--- Main
+-- Module Config
 CombatServiceClient.Config = {
 	Combo = 1,
 	ComboResetTime = 0.80,
@@ -51,9 +38,13 @@ end
 function CombatServiceClient.BindEvents()
 	m1Action.Pressed:Connect(function()
 		local now = DateTime.now().UnixTimestampMillis / 1000
-		if CombatServiceClient.Config.IsAttacking then return end
-		if now < CombatServiceClient.Config.ComboBreakTime then return end
-		
+		if CombatServiceClient.Config.IsAttacking then
+			return
+		end
+		if now < CombatServiceClient.Config.ComboBreakTime then
+			return
+		end
+
 		CombatServiceClient.Attack()
 	end)
 end
@@ -63,37 +54,38 @@ function CombatServiceClient.Attack()
 	local combo = CombatServiceClient.Config.Combo
 	local currentTime = DateTime.now().UnixTimestampMillis / 1000
 	local timeSinceLastAttack = currentTime - CombatServiceClient.Config.LastAttackTime
-	
+
 	if timeSinceLastAttack <= CombatServiceClient.Config.ComboResetTime then
 		combo += 1
 	else
 		combo = 1
 	end
-	
+
 	CombatServiceClient.Config.Combo = combo
-	local isLastHit = CombatServiceClient.Config.Combo == 3
-	
+	local isLastHit = CombatServiceClient.Config.Combo == fighterConfig.MaxComboCount
+
 	if isLastHit then
 		CombatServiceClient.Config.ComboBreakTime = currentTime + 1
 	end
-	
-	if combo > 3 then
+
+	if combo > fighterConfig.MaxComboCount then
 		combo = 1
 	end
-	
+
 	CombatServiceClient.Config.LastAttackTime = currentTime
-	
-	local currentAnimationTrack = AnimationLoader.LoadAnimation(Animations[CombatServiceClient.Config.Combo])
-	local strikeSound = if CombatServiceClient.Config.Combo == 3 then HeavyStrike else NormalStrike
-	
-	humanoid.WalkSpeed = 10
+
+	local currentAnimationTrack =
+		AnimationLoader.LoadAnimation(fighterConfig.Animations[CombatServiceClient.Config.Combo])
+	local strikeSound = if CombatServiceClient.Config.Combo == fighterConfig.MaxComboCount
+		then fighterConfig.SFX.Heavy
+		else fighterConfig.SFX.Normal
+
 	currentAnimationTrack:Play()
 	currentAnimationTrack:GetMarkerReachedSignal("Hit"):Connect(function()
 		strikeSound:Play()
 		HitboxClientModule.CreateHitbox(combo, SettingsModule.Config.isHitboxChecked)
 	end)
 	currentAnimationTrack.Stopped:Wait()
-	humanoid.WalkSpeed = 16
 	CombatServiceClient.Config.IsAttacking = false
 end
 

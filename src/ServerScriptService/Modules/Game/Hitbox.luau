@@ -1,16 +1,18 @@
 --!strict
 local HitboxServerModule = {}
 
+-- TODO: Create custom hitboxes per fighter type instead of using a generic box hitbox for all fighters. This will allow for more precise hit detection and better gameplay feel.
+
 function HitboxServerModule.CreateHitbox(player: Player, isHitboxChecked: BoolValue)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
 
 	local hitboxCFrame = humanoidRootPart.CFrame * CFrame.new(0, 0, -2.5)
 	local hitboxSize = Vector3.new(5, 5, 2)
-	
+
 	local overlapParams = OverlapParams.new()
-	overlapParams.ExcludeInstances = {character} -- excludes the attacker's character from the hitbox
-	
+	overlapParams.ExcludeInstances = { character } -- excludes the attacker's character from the hitbox
+
 	if isHitboxChecked then
 		local hitbox = Instance.new("Part")
 		hitbox.Size = hitboxSize
@@ -20,7 +22,7 @@ function HitboxServerModule.CreateHitbox(player: Player, isHitboxChecked: BoolVa
 		hitbox.CanCollide = false
 		hitbox.Anchored = true
 		hitbox.Parent = workspace
-		
+
 		task.delay(0.35, function()
 			hitbox:Destroy()
 		end)
@@ -31,16 +33,22 @@ function HitboxServerModule.CreateHitbox(player: Player, isHitboxChecked: BoolVa
 
 	for _, part in hitboxParts do
 		local model = part:FindFirstAncestorOfClass("Model")
-		if not model then continue end
+		if not model then
+			continue
+		end
 
 		local humanoid = model:FindFirstChildOfClass("Humanoid")
-		if not humanoid then continue end
-		
+		if not humanoid then
+			continue
+		end
+
 		-- prevents a single attack from dealing damage multiple times
-		if table.find(humanoids, humanoid) then continue end
+		if table.find(humanoids, humanoid) then
+			continue
+		end
 		table.insert(humanoids, humanoid)
 	end
-		
+
 	return humanoids
 end
 
