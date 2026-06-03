@@ -32,8 +32,12 @@ local creditsMenu = creditsGui.CreditsMenu
 local creditsMenuScale = creditsMenu.UIScale
 
 -- Inputs
+local combatContext = RS.Inputs.Combat
 local playButtonAction = RS.Inputs.GUIs.MainMenu.PlayButton
 local creditsButtonAction = RS.Inputs.GUIs.MainMenu.CreditsButton
+
+-- Remotes
+local PlayerRemote = RS.Remotes.PlayerRemote :: RemoteEvent
 
 -- SFX
 local buttonPress = RS.Assets.SFX.GuiButtonPress
@@ -62,6 +66,7 @@ end
 local isCreditsOpen = false
 
 function MainMenu.Init()
+	combatContext.Enabled = false
 	playButtonAction.TapAndClick.UIButton = playButton
 	creditsButtonAction.TapAndClick.UIButton = creditsButton
 	mainMenuGui.Parent = playerGui
@@ -74,6 +79,8 @@ function MainMenu.Init()
 	end)
 
 	playButtonAction.Released:Connect(function()
+		combatContext.Enabled = true
+		PlayerRemote:FireServer("UnanchorHumanoidRootPart")
 		buttonRelease:Play()
 
 		-- Initialize all main game GUIs
