@@ -63,6 +63,15 @@ function HitboxServerModule.CreateHitbox(player: Player, isHitboxChecked: boolea
 		end
 	end
 
+	-- TODO: Implement weapon and projectile hitbox types
+	if fighterConfig.Hitbox.HitboxType == "Weapon" then
+		print("Weapon hitbox type is not yet implemented.")
+	end
+
+	if fighterConfig.Hitbox.HitboxType == "Projectile" then
+		print("Projectile hitbox type is not yet implemented.")
+	end
+
 	return hitHumanoids
 end
 
