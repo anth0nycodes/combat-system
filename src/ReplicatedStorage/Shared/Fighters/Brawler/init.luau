@@ -14,11 +14,12 @@ local NormalStrike = RS.Assets.SFX.Fighters.Brawler.Normal
 local HeavyStrike = RS.Assets.SFX.Fighters.Brawler.Heavy
 
 Config.FighterConfig = {
-	Animations = {
+	M1Animations = {
 		BrawlerAnimations.M1One,
 		BrawlerAnimations.M1Two,
 		BrawlerAnimations.M1Three,
 	},
+	BlockAnimation = BrawlerAnimations.Block,
 	SFX = { Normal = NormalStrike, Heavy = HeavyStrike },
 	Damage = { Normal = 3, Heavy = 8 },
 	MaxComboCount = 3,
@@ -26,7 +27,7 @@ Config.FighterConfig = {
 		HitboxType = "Box",
 		Size = Vector3.new(5, 5, 2),
 		CFrame = CFrame.new(0, 0, -2.5),
-	},
+	} :: Types.BoxHitboxConfig,
 }
 
 return Config

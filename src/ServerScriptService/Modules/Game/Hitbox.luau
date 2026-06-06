@@ -10,7 +10,7 @@ local FighterConfigModule = require(RS.Utils.FighterConfig)
 -- Fighter Config
 local fighterConfig = FighterConfigModule.get()
 
-function HitboxServerModule.CreateHitbox(player: Player, isHitboxChecked: boolean)
+function HitboxServerModule.CreateHitbox(player: Player)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local hitHumanoids: { Humanoid } = {}
 
@@ -22,21 +22,6 @@ function HitboxServerModule.CreateHitbox(player: Player, isHitboxChecked: boolea
 
 		local hitboxSize = fighterConfig.Hitbox.Size
 		local hitboxCFrame = humanoidRootPart.CFrame * fighterConfig.Hitbox.CFrame
-
-		if isHitboxChecked then
-			local hitbox = Instance.new("Part")
-			hitbox.Size = hitboxSize
-			hitbox.Color = Color3.new(1, 0, 0)
-			hitbox.Transparency = 0.8
-			hitbox.Anchored = true
-			hitbox.CanCollide = false
-			hitbox.CFrame = hitboxCFrame
-			hitbox.Parent = workspace
-
-			task.delay(0.35, function()
-				hitbox:Destroy()
-			end)
-		end
 
 		local overlapParams = OverlapParams.new()
 		overlapParams.ExcludeInstances = { character }

@@ -1,17 +1,17 @@
 local Types = {}
 
-type BoxHitboxConfig = {
+export type BoxHitboxConfig = {
 	HitboxType: "Box",
 	Size: Vector3,
 	CFrame: CFrame,
 }
 
-type WeaponHitboxConfig = {
+export type WeaponHitboxConfig = {
 	HitboxType: "Weapon",
 	WeaponPart: BasePart,
 }
 
-type ProjectileHitboxConfig = {
+export type ProjectileHitboxConfig = {
 	HitboxType: "Projectile",
 	Speed: number,
 	Direction: Vector3,
@@ -20,7 +20,8 @@ type ProjectileHitboxConfig = {
 type HitboxConfig = BoxHitboxConfig | WeaponHitboxConfig | ProjectileHitboxConfig
 
 type FighterConfigType = {
-	Animations: { Animation },
+	M1Animations: { Animation },
+	BlockAnimation: Animation,
 	SFX: {
 		Normal: Sound,
 		Heavy: Sound,

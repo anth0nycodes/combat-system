@@ -17,11 +17,12 @@ local NormalSlice = RS.Assets.SFX.Fighters.Slayer.Normal
 local HeavySlice = RS.Assets.SFX.Fighters.Slayer.Heavy
 
 Config.FighterConfig = {
-	Animations = {
+	M1Animations = {
 		SlayerAnimations.M1One,
 		SlayerAnimations.M1Two,
 		SlayerAnimations.M1Three,
 	},
+	BlockAnimation = SlayerAnimations.Block,
 	SFX = { Normal = NormalSlice, Heavy = HeavySlice },
 	Damage = { Normal = 3, Heavy = 8 },
 	MaxComboCount = 3,
@@ -29,7 +30,7 @@ Config.FighterConfig = {
 		HitboxType = "Box",
 		Size = Vector3.new(8, 8, 8),
 		CFrame = CFrame.new(0, 0, -2.5),
-	},
+	} :: Types.BoxHitboxConfig,
 }
 
 return Config
