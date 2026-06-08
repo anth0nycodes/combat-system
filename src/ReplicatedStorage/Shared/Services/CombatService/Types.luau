@@ -4,6 +4,9 @@ type Config = {
 	Combo: number,
 	ComboResetTime: number,
 	IsAttacking: boolean,
+	IsBlocking: boolean,
+	BlockMeter: number,
+	IsStunned: boolean,
 	ComboBreakTime: number,
 	LastAttackTime: number,
 }
@@ -13,6 +16,7 @@ export type CombatServiceClientType = {
 	Init: () -> (),
 	BindEvents: () -> (),
 	Attack: () -> (),
+	Block: () -> (),
 }
 
 return Types
