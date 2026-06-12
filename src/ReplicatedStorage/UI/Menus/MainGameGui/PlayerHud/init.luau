@@ -21,6 +21,10 @@ local CombatServiceClient = require(RS.Shared.Services.CombatService.CombatServi
 -- Utils
 local CharacterLoader = require(RS.Utils.CharacterLoader)
 
+-- SFX
+local HealthDrainSFX = RS.Assets.SFX.HealthDrain :: Sound
+local BlockDrainSFX = RS.Assets.SFX.BlockDrain :: Sound
+
 -- GUIs
 local playerHudGuiTemplate = RS.Assets.GUIs.PlayerHudGui :: Types.PlayerHudGui
 local playerHudGui = playerHudGuiTemplate:Clone()
@@ -34,24 +38,42 @@ local blockStat = playerStats.Block
 local blockPercentage = blockStat.BlockPercentage
 local blockMeter = blockStat.BlockGroup.BlockBar.BlockMeter
 
+local previousPlayerHealth: number
+local previousBlockMeter: number
+
 local function updateHealthStat()
-	local playerHealth = math.round(humanoid.Health) -- Round because when regenerating, health can be a decimal
+	local currentPlayerHealth = math.round(humanoid.Health) -- Round because when regenerating, health can be a decimal
 	local playerMaxHealth = humanoid.MaxHealth
-	local healthMeterSize = playerHealth / playerMaxHealth
-	healthMeter.Size = UDim2.fromScale(healthMeterSize, 1)
-	healthPercentage.Text = `{playerHealth}%`
+	local currentPlayerHealthRatio = currentPlayerHealth / playerMaxHealth
+	local currentPlayerHealthPercentage = math.round(currentPlayerHealthRatio * 100)
+
+	if currentPlayerHealth < previousPlayerHealth then
+		HealthDrainSFX:Play()
+	end
+	previousPlayerHealth = currentPlayerHealth
+
+	healthMeter.Size = UDim2.fromScale(currentPlayerHealthRatio, 1)
+	healthPercentage.Text = `{currentPlayerHealthPercentage}%`
 end
 
 local function updateBlockStat()
-	local blockValue = math.round(character:GetAttribute("BlockMeter") :: number)
-	local blockMeterSize = blockValue / 100
+	local currentBlockMeter = math.round(character:GetAttribute("BlockMeter") :: number)
+
+	if currentBlockMeter < previousBlockMeter then
+		BlockDrainSFX:Play()
+	end
+	previousBlockMeter = currentBlockMeter
+
+	local blockMeterSize = currentBlockMeter / 100
 	blockMeter.Size = UDim2.fromScale(blockMeterSize, 1)
-	blockPercentage.Text = `{blockValue}%`
+	blockPercentage.Text = `{currentBlockMeter}%`
 end
 
 local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
 	character = newCharacter
 	humanoid = newHumanoid
+	previousPlayerHealth = math.round(humanoid.Health)
+	previousBlockMeter = math.round(character:GetAttribute("BlockMeter") :: number)
 	updateHealthStat()
 	updateBlockStat()
 	humanoid.HealthChanged:Connect(updateHealthStat)
