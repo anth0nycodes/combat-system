@@ -52,9 +52,11 @@ local function updateHealthStat()
 	local currentPlayerHealthPercentage = math.round(currentPlayerHealthRatio * 100)
 
 	if currentPlayerHealth < previousPlayerHealth then
-		local knockbackTrack = AnimationLoader.LoadAnimation(fighterConfig.Animations.KnockbackAnimation)
-		HealthDrainSFX:Play()
-		knockbackTrack:Play()
+		if not character:GetAttribute("IsBlocking") then
+			local knockbackTrack = AnimationLoader.LoadAnimation(fighterConfig.Animations.KnockbackAnimation)
+			HealthDrainSFX:Play()
+			knockbackTrack:Play()
+		end
 	end
 	previousPlayerHealth = currentPlayerHealth
 
