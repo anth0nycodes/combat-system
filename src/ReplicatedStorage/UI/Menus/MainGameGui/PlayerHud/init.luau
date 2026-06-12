@@ -43,8 +43,8 @@ local function updateHealthStat()
 end
 
 local function updateBlockStat()
-	local blockValue = character:GetAttribute("BlockMeter") or 100
-	local blockMeterSize = CombatServiceClient.Config.BlockMeter / 100
+	local blockValue = math.round(character:GetAttribute("BlockMeter") :: number)
+	local blockMeterSize = blockValue / 100
 	blockMeter.Size = UDim2.fromScale(blockMeterSize, 1)
 	blockPercentage.Text = `{blockValue}%`
 end

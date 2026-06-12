@@ -10,17 +10,27 @@ local RS = game:GetService("ReplicatedStorage")
 local BrawlerAnimations = RS.Assets.Animations.Brawler
 
 -- Brawler SFX
-local NormalStrike = RS.Assets.SFX.Fighters.Brawler.Normal
-local HeavyStrike = RS.Assets.SFX.Fighters.Brawler.Heavy
+local NormalStrikeSFX = RS.Assets.SFX.Fighters.Brawler.Normal
+local HeavyStrikeSFX = RS.Assets.SFX.Fighters.Brawler.Heavy
+local BlockBreakSFX = RS.Assets.SFX.Fighters.Brawler.BlockBreak
 
 Config.FighterConfig = {
-	M1Animations = {
-		BrawlerAnimations.M1One,
-		BrawlerAnimations.M1Two,
-		BrawlerAnimations.M1Three,
+	Animations = {
+		M1Animations = {
+			BrawlerAnimations.M1One,
+			BrawlerAnimations.M1Two,
+			BrawlerAnimations.M1Three,
+		},
+		BlockAnimation = BrawlerAnimations.Block,
+		BlockBreakAnimation = BrawlerAnimations.BlockBreak,
+		ParryStunAnimation = BrawlerAnimations.ParryStun,
 	},
-	BlockAnimation = BrawlerAnimations.Block,
-	SFX = { Normal = NormalStrike, Heavy = HeavyStrike },
+	Stuns = {
+		BlockBreakDuration = 2,
+		ParryDuration = 2,
+	},
+	WalkSpeed = { Base = 16, Attacking = 12, Blocking = 8, BlockBroken = 2 },
+	SFX = { NormalAttack = NormalStrikeSFX, HeavyAttack = HeavyStrikeSFX, BlockBreak = BlockBreakSFX },
 	Damage = { Normal = 3, Heavy = 8 },
 	MaxComboCount = 3,
 	Hitbox = {

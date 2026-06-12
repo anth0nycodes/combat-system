@@ -32,14 +32,14 @@ local blockAction = RS.Inputs.Combat.Block
 -- Block Animation
 local blockTrack: AnimationTrack
 
+-- Constants
+local BLOCK_DRAIN_AMOUNT = 15
+
 -- Module Config
 CombatServiceClient.Config = {
 	Combo = 1,
 	ComboResetTime = 0.80,
 	IsAttacking = false,
-	IsBlocking = false,
-	BlockMeter = 100,
-	IsStunned = false,
 	ComboBreakTime = 0,
 	LastAttackTime = 0,
 }
@@ -47,6 +47,21 @@ CombatServiceClient.Config = {
 local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
 	character = newCharacter
 	humanoid = newHumanoid
+
+	character:GetAttributeChangedSignal("IsStunned"):Connect(function()
+		if character:GetAttribute("IsStunned") then
+			if blockTrack then
+				blockTrack:Stop()
+			end
+			local blockBreakTrack = AnimationLoader.LoadAnimation(fighterConfig.Animations.BlockBreakAnimation)
+			blockBreakTrack:Play()
+			blockBreakTrack:AdjustSpeed(2)
+			fighterConfig.SFX.BlockBreak:Play()
+			humanoid.WalkSpeed = fighterConfig.WalkSpeed.BlockBroken
+			blockBreakTrack.Stopped:Wait()
+			humanoid.WalkSpeed = fighterConfig.WalkSpeed.Base
+		end
+	end)
 end
 
 function CombatServiceClient.Init()
@@ -61,8 +76,8 @@ function CombatServiceClient.BindEvents()
 		if
 			humanoid.Health <= 0
 			or CombatServiceClient.Config.IsAttacking
-			or CombatServiceClient.Config.IsStunned
-			or CombatServiceClient.Config.IsBlocking
+			or character:GetAttribute("IsStunned")
+			or character:GetAttribute("IsBlocking")
 			or now < CombatServiceClient.Config.ComboBreakTime
 		then
 			return
@@ -76,14 +91,23 @@ function CombatServiceClient.BindEvents()
 	end)
 
 	blockAction.Released:Connect(function()
-		CombatServiceClient.Config.IsBlocking = false
 		if blockTrack then
 			blockTrack:Stop()
 		end
+		BlockRemote:FireServer(false)
+		humanoid.WalkSpeed = fighterConfig.WalkSpeed.Base
 	end)
 end
 
 function CombatServiceClient.Attack()
+	if
+		blockAction:GetState()
+		or humanoid.Health <= 0
+		or character:GetAttribute("IsStunned")
+		or character:GetAttribute("IsBlocking")
+	then
+		return
+	end
 	CombatServiceClient.Config.IsAttacking = true
 	local combo = CombatServiceClient.Config.Combo
 	local currentTime = DateTime.now().UnixTimestampMillis / 1000
@@ -109,24 +133,36 @@ function CombatServiceClient.Attack()
 	CombatServiceClient.Config.LastAttackTime = currentTime
 
 	local currentAnimationTrack =
-		AnimationLoader.LoadAnimation(fighterConfig.M1Animations[CombatServiceClient.Config.Combo])
+		AnimationLoader.LoadAnimation(fighterConfig.Animations.M1Animations[CombatServiceClient.Config.Combo])
 	local strikeSound = if CombatServiceClient.Config.Combo == fighterConfig.MaxComboCount
-		then fighterConfig.SFX.Heavy
-		else fighterConfig.SFX.Normal
+		then fighterConfig.SFX.HeavyAttack
+		else fighterConfig.SFX.NormalAttack
 
 	currentAnimationTrack:Play()
+	humanoid.WalkSpeed = fighterConfig.WalkSpeed.Attacking
 	currentAnimationTrack:GetMarkerReachedSignal("Hit"):Connect(function()
+		if character:GetAttribute("IsStunned") then -- client check to prevent sfx and hitbox from activating
+			return
+		end
 		local humanoidRootPart = character:WaitForChild("HumanoidRootPart") :: BasePart
 		strikeSound:Play()
 		HitboxClientModule.CreateHitbox(humanoidRootPart)
 		AttackRemote:FireServer(combo)
 	end)
 	currentAnimationTrack.Stopped:Wait()
+	if not character:GetAttribute("IsStunned") then
+		humanoid.WalkSpeed = fighterConfig.WalkSpeed.Base
+	end
 	CombatServiceClient.Config.IsAttacking = false
 end
 
 function CombatServiceClient.Block()
-	if CombatServiceClient.Config.IsStunned or CombatServiceClient.Config.IsAttacking or humanoid.Health <= 0 then
+	if
+		character:GetAttribute("IsStunned")
+		or character:GetAttribute("BlockMeter") < BLOCK_DRAIN_AMOUNT
+		or CombatServiceClient.Config.IsAttacking
+		or humanoid.Health <= 0
+	then
 		return
 	end
 	task.wait(0.0375) -- Small delay to prevent blocking immediately after attacking
@@ -134,10 +170,10 @@ function CombatServiceClient.Block()
 		return
 	end
 	print("Block")
-	blockTrack = AnimationLoader.LoadAnimation(fighterConfig.BlockAnimation)
-	CombatServiceClient.Config.IsBlocking = true
+	blockTrack = AnimationLoader.LoadAnimation(fighterConfig.Animations.BlockAnimation)
 	blockTrack:Play()
-	BlockRemote:FireServer()
+	BlockRemote:FireServer(true)
+	humanoid.WalkSpeed = fighterConfig.WalkSpeed.Blocking
 end
 
 return CombatServiceClient
