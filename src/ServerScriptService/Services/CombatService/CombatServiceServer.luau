@@ -25,16 +25,23 @@ local activeRegenTasks: { [Model]: boolean } = {}
 
 -- should regenerate 10%/sec
 local function startBlockRegen(character: Model)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+	if not humanoid then
+		return
+	end
 	if activeRegenTasks[character] then
 		return
 	end
 	activeRegenTasks[character] = true
+
 	-- task.spawn to prevent yielding the current thread wherever this function is called
 	task.spawn(function()
 		while
 			activeRegenTasks[character]
 			and character:GetAttribute("BlockMeter") < 100
 			and not character:GetAttribute("IsBlocking")
+			and humanoid.Health > 0
 			and character.Parent
 		do
 			local currentBlockMeter = character:GetAttribute("BlockMeter") :: number
