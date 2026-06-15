@@ -35,7 +35,7 @@ local blockAction = RS.Inputs.Combat.Block
 local blockTrack: AnimationTrack
 
 -- Constants
-local BLOCK_DRAIN_AMOUNT = 15
+local CombatServiceConstants = require(script.Parent.Constants)
 
 -- Module Config
 CombatServiceClient.Config = {
@@ -106,10 +106,13 @@ function CombatServiceClient.BindEvents()
 	end)
 
 	blockAction.Released:Connect(function()
+		if not character:GetAttribute("IsBlocking") then
+			return
+		end
 		if blockTrack then
 			blockTrack:Stop()
 		end
-		BlockRemote:FireServer(false)
+		BlockRemote:FireServer(false, true)
 		humanoid.WalkSpeed = fighterConfig.WalkSpeed.Base
 	end)
 end
@@ -220,7 +223,7 @@ end
 function CombatServiceClient.Block()
 	if
 		character:GetAttribute("IsStunned")
-		or character:GetAttribute("BlockMeter") < BLOCK_DRAIN_AMOUNT
+		or character:GetAttribute("BlockMeter") < CombatServiceConstants.BLOCK_DRAIN_AMOUNT
 		or CombatServiceClient.Config.IsAttacking
 		or humanoid.Health <= 0
 	then

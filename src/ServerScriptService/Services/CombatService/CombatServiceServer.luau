@@ -18,7 +18,35 @@ local AttackRemote = RS.Remotes.AttackRemote
 local BlockRemote = RS.Remotes.BlockRemote
 
 -- Constants
-local BLOCK_DRAIN_AMOUNT = 15
+local CombatServiceConstants = require(RS.Shared.Services.CombatService.Constants)
+
+-- active regen tasks to prevent multiple regen tasks from being created for the same character
+local activeRegenTasks: { [Model]: boolean } = {}
+
+-- should regenerate 10%/sec
+local function startBlockRegen(character: Model)
+	if activeRegenTasks[character] then
+		return
+	end
+	activeRegenTasks[character] = true
+	-- task.spawn to prevent yielding the current thread wherever this function is called
+	task.spawn(function()
+		while
+			activeRegenTasks[character]
+			and character:GetAttribute("BlockMeter") < 100
+			and not character:GetAttribute("IsBlocking")
+			and character.Parent
+		do
+			local currentBlockMeter = character:GetAttribute("BlockMeter") :: number
+			character:SetAttribute(
+				"BlockMeter",
+				math.min(100, currentBlockMeter + CombatServiceConstants.BLOCK_REGEN_RATE)
+			)
+			task.wait(CombatServiceConstants.BLOCK_REGEN_INTERVAL)
+		end
+		activeRegenTasks[character] = nil
+	end)
+end
 
 local function setInitialPlayerCombatAttributes(player: Player)
 	player.CharacterAdded:Connect(function(character)
@@ -46,7 +74,8 @@ end
 local function processHit(combo: number, hitHumanoid: Humanoid)
 	local hitCharacter = hitHumanoid.Parent :: Model
 	local DAMAGE = getDamage(combo, hitHumanoid)
-	local NEW_BLOCK_METER_VALUE = math.max(0, hitCharacter:GetAttribute("BlockMeter") :: number - BLOCK_DRAIN_AMOUNT)
+	local NEW_BLOCK_METER_VALUE =
+		math.max(0, hitCharacter:GetAttribute("BlockMeter") :: number - CombatServiceConstants.BLOCK_DRAIN_AMOUNT)
 
 	if hitCharacter:GetAttribute("IsBlocking") then -- if the hit character is blocking, reduce their block meter
 		hitCharacter:SetAttribute("BlockMeter", NEW_BLOCK_METER_VALUE)
@@ -57,6 +86,7 @@ local function processHit(combo: number, hitHumanoid: Humanoid)
 		hitCharacter:SetAttribute("IsStunned", true)
 		task.delay(fighterConfig.Stuns.BlockBreakDuration, function()
 			hitCharacter:SetAttribute("IsStunned", false)
+			startBlockRegen(hitCharacter)
 		end)
 	end
 
@@ -88,12 +118,17 @@ function CombatServiceServer.Init()
 		end
 	end)
 
-	BlockRemote.OnServerEvent:Connect(function(player: Player, isBlocking: boolean)
+	BlockRemote.OnServerEvent:Connect(function(player: Player, isBlocking: boolean, regenerateBlock: boolean?)
 		local character = player.Character or player.CharacterAdded:Wait()
-		if character:GetAttribute("BlockMeter") < BLOCK_DRAIN_AMOUNT then -- if the player's block meter is too low, they shouldn't be able to block
+		-- the isBlocking check is necessary to prevent exploiters from manually sending `true` to the server despite their meter being too low to block
+		if isBlocking and character:GetAttribute("BlockMeter") < CombatServiceConstants.BLOCK_DRAIN_AMOUNT then -- if the player's block meter is too low, they shouldn't be able to block
 			return
 		end
 		character:SetAttribute("IsBlocking", isBlocking)
+
+		if regenerateBlock then
+			startBlockRegen(character)
+		end
 	end)
 end
 
