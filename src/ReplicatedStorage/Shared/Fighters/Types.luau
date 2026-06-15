@@ -19,9 +19,16 @@ export type ProjectileHitboxConfig = {
 
 type HitboxConfig = BoxHitboxConfig | WeaponHitboxConfig | ProjectileHitboxConfig
 
+type M1AnimationData = {
+	Animation: Animation,
+	HitAt: { number },
+	CanCancelAt: number,
+	Lunge: { LungeAt: { number }, LungeForce: number }?,
+}
+
 type FighterConfigType = {
 	Animations: {
-		M1Animations: { Animation },
+		M1Animations: { M1AnimationData },
 		BlockAnimation: Animation,
 		BlockBreakAnimation: Animation,
 		ParryStunAnimation: Animation,

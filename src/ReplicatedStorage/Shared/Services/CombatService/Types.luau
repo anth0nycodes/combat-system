@@ -6,6 +6,9 @@ type Config = {
 	IsAttacking: boolean,
 	ComboBreakTime: number,
 	LastAttackTime: number,
+	CurrentAnimationTrack: AnimationTrack?,
+	CurrentCanCancelAt: number,
+	AttackId: number,
 }
 
 export type CombatServiceClientType = {
