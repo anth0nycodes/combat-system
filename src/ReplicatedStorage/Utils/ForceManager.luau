@@ -1,7 +1,7 @@
 --!strict
 local ForceManager = {}
 
-function ForceManager.applyForce(humanoidRootPart: BasePart, amount: number)
+function ForceManager.ApplyForce(humanoidRootPart: BasePart, amount: number, duration: number)
 	local attachment = Instance.new("Attachment")
 	attachment.Parent = humanoidRootPart
 
@@ -13,7 +13,7 @@ function ForceManager.applyForce(humanoidRootPart: BasePart, amount: number)
 	LV.Attachment0 = attachment
 	LV.Parent = humanoidRootPart
 
-	task.delay(0.15, function()
+	task.delay(duration, function()
 		LV:Destroy()
 		attachment:Destroy()
 	end)

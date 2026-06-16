@@ -21,7 +21,7 @@ type HitboxConfig = BoxHitboxConfig | WeaponHitboxConfig | ProjectileHitboxConfi
 
 type M1AnimationData = {
 	Animation: Animation,
-	Lunge: { LungeForce: number }?,
+	Lunge: { LungeForce: number, LungeDuration: number }?,
 }
 
 type FighterConfigType = {

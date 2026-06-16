@@ -21,7 +21,7 @@ Config.FighterConfig = {
 			{ Animation = BrawlerAnimations.M1Two },
 			{
 				Animation = BrawlerAnimations.M1Three,
-				Lunge = { LungeForce = 18 },
+				Lunge = { LungeForce = 18, LungeDuration = 0.2 },
 			},
 		},
 		BlockAnimation = BrawlerAnimations.Block,

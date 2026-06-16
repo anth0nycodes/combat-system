@@ -24,7 +24,7 @@ Config.FighterConfig = {
 			{ Animation = SlayerAnimations.M1Two },
 			{
 				Animation = SlayerAnimations.M1Three,
-				Lunge = { LungeForce = 18 },
+				Lunge = { LungeForce = 18, LungeDuration = 0.2 },
 			},
 		},
 		BlockAnimation = SlayerAnimations.Block,

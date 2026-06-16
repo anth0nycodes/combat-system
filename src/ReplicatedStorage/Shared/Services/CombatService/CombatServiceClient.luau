@@ -203,7 +203,7 @@ function CombatServiceClient.Attack()
 			if not humanoidRootPart then
 				return
 			end
-			ForceManager.applyForce(humanoidRootPart, m1Data.Lunge.LungeForce)
+			ForceManager.ApplyForce(humanoidRootPart, m1Data.Lunge.LungeForce, m1Data.Lunge.LungeDuration)
 		end)
 	end
 
