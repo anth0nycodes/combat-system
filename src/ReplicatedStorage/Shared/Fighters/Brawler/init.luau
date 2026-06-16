@@ -39,7 +39,7 @@ Config.FighterConfig = {
 	MaxComboCount = 3,
 	Hitbox = {
 		HitboxType = "Box",
-		Size = Vector3.new(5, 5, 2),
+		Size = Vector3.new(5, 5, 3),
 		CFrame = CFrame.new(0, 0, -2.5),
 	} :: Types.BoxHitboxConfig,
 }

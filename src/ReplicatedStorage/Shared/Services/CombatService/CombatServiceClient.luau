@@ -60,13 +60,15 @@ local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
 
 	character:GetAttributeChangedSignal("IsStunned"):Connect(function()
 		if character:GetAttribute("IsStunned") then
+			local blockBreakSFX = fighterConfig.SFX.BlockBreak:Clone()
+			blockBreakSFX.Parent = humanoidRootPart
 			if blockTrack then
 				blockTrack:Stop()
 			end
 			local blockBreakTrack = AnimationLoader.LoadAnimation(fighterConfig.Animations.BlockBreakAnimation)
 			blockBreakTrack:Play()
 			blockBreakTrack:AdjustSpeed(2)
-			fighterConfig.SFX.BlockBreak:Play()
+			blockBreakSFX:Play()
 			humanoid.WalkSpeed = fighterConfig.WalkSpeed.BlockBroken
 			blockBreakTrack.Stopped:Wait()
 			humanoid.WalkSpeed = fighterConfig.WalkSpeed.Base
@@ -164,8 +166,9 @@ function CombatServiceClient.Attack()
 	CombatServiceClient.Config.CanCancel = false
 
 	local strikeSound = if CombatServiceClient.Config.Combo == fighterConfig.MaxComboCount
-		then fighterConfig.SFX.HeavyAttack
-		else fighterConfig.SFX.NormalAttack
+		then fighterConfig.SFX.HeavyAttack:Clone()
+		else fighterConfig.SFX.NormalAttack:Clone()
+	strikeSound.Parent = humanoidRootPart
 
 	currentAnimationTrack:GetMarkerReachedSignal("Hit"):Connect(function()
 		if CombatServiceClient.Config.AttackId ~= attackId then
