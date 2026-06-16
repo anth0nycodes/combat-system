@@ -5,6 +5,7 @@ export type LoadingScreenGui = ScreenGui & {
 		Title: TextLabel,
 		LoadingText: TextLabel,
 		Percentage: TextLabel,
+		SkipButton: TextButton,
 		CanvasGroup: CanvasGroup & {
 			LoadingBar: Frame & {
 				LoadingMeter: Frame,
