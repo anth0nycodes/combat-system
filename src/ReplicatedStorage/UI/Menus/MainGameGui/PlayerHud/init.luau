@@ -13,6 +13,7 @@ local player = Players.LocalPlayer
 assert(player, "Player is not defined")
 local character: Model
 local humanoid: Humanoid
+local humanoidRootPart: BasePart
 local playerGui = player.PlayerGui
 
 -- Modules
@@ -27,7 +28,8 @@ local fighterConfig = FighterConfigModule.get()
 
 -- SFX
 local HealthDrainSFX = RS.Assets.SFX.HealthDrain :: Sound
-local BlockDrainSFX = RS.Assets.SFX.BlockDrain :: Sound
+local BlockDrainSFX = RS.Assets.SFX.BlockDrain:Clone() :: Sound
+BlockDrainSFX.Parent = humanoidRootPart
 
 -- GUIs
 local playerHudGuiTemplate = RS.Assets.GUIs.PlayerHudGui :: Types.PlayerHudGui
@@ -80,6 +82,7 @@ end
 local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
 	character = newCharacter
 	humanoid = newHumanoid
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart") :: BasePart
 	previousPlayerHealth = math.round(humanoid.Health)
 	previousBlockMeter = math.round(character:GetAttribute("BlockMeter") :: number)
 	updateHealthStat()
