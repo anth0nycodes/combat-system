@@ -106,7 +106,7 @@ function CombatServiceClient.BindEvents()
 	end)
 
 	blockAction.Released:Connect(function()
-		if not character:GetAttribute("IsBlocking") then
+		if not character:GetAttribute("IsBlocking") and not (blockTrack and blockTrack.IsPlaying) then
 			return
 		end
 		if blockTrack then
