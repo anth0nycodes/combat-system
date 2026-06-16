@@ -67,7 +67,7 @@ local function getDamage(combo: number, hitHumanoid: Humanoid)
 	local hitCharacter = hitHumanoid.Parent :: Model
 	local DAMAGE_REDUCTION_FACTOR: number
 	if hitCharacter:GetAttribute("IsBlocking") then
-		DAMAGE_REDUCTION_FACTOR = 0.85
+		DAMAGE_REDUCTION_FACTOR = 0.50
 	else
 		DAMAGE_REDUCTION_FACTOR = 1
 	end
