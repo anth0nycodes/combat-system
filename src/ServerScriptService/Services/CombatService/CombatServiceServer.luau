@@ -67,14 +67,8 @@ local function setInitialPlayerCombatAttributes(player: Player)
 	end)
 end
 
-local function getDamage(combo: number, hitHumanoid: Humanoid)
-	local hitCharacter = hitHumanoid.Parent :: Model
-	local DAMAGE_REDUCTION_FACTOR: number
-	if hitCharacter:GetAttribute("IsBlocking") then
-		DAMAGE_REDUCTION_FACTOR = 0.50
-	else
-		DAMAGE_REDUCTION_FACTOR = 1
-	end
+local function getDamage(combo: number, isBlocking: boolean)
+	local DAMAGE_REDUCTION_FACTOR: number = if isBlocking then 0.50 else 1
 	local DAMAGE = if combo == fighterConfig.MaxComboCount
 		then fighterConfig.Damage.Heavy
 		else fighterConfig.Damage.Normal
@@ -86,6 +80,7 @@ local function processHit(combo: number, attackerCharacter: Model, hitHumanoid: 
 	local hitCharacter = hitHumanoid.Parent :: Model
 	local NEW_BLOCK_METER_VALUE =
 		math.max(0, hitCharacter:GetAttribute("BlockMeter") :: number - CombatServiceConstants.BLOCK_DRAIN_AMOUNT)
+	local isBlockValid = false
 
 	if hitCharacter:GetAttribute("IsBlocking") then -- if the defender is blocking, reduce their block meter
 		local attackerRootPart = attackerCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
@@ -110,10 +105,9 @@ local function processHit(combo: number, attackerCharacter: Model, hitHumanoid: 
 				end)
 				return
 			else
+				isBlockValid = true
 				hitCharacter:SetAttribute("BlockMeter", NEW_BLOCK_METER_VALUE)
 			end
-		else
-			hitCharacter:SetAttribute("IsBlocking", false)
 		end
 	end
 
@@ -128,7 +122,7 @@ local function processHit(combo: number, attackerCharacter: Model, hitHumanoid: 
 		end)
 	end
 
-	local DAMAGE = getDamage(combo, hitHumanoid)
+	local DAMAGE = getDamage(combo, isBlockValid)
 	hitHumanoid:TakeDamage(DAMAGE)
 end
 
@@ -157,7 +151,7 @@ function CombatServiceServer.Init()
 		end
 	end)
 
-	BlockRemote.OnServerEvent:Connect(function(player: Player, isBlocking: boolean, regenerateBlock: boolean?)
+	BlockRemote.OnServerEvent:Connect(function(player: Player, isBlocking: boolean)
 		local character = player.Character or player.CharacterAdded:Wait()
 		-- the isBlocking check is necessary to prevent exploiters from manually sending `true` to the server despite their meter being too low to block
 		if isBlocking and character:GetAttribute("BlockMeter") < CombatServiceConstants.BLOCK_DRAIN_AMOUNT then -- if the player's block meter is too low, they shouldn't be able to block
@@ -170,9 +164,6 @@ function CombatServiceServer.Init()
 			blockStartTimes[character] = os.clock()
 		else
 			blockStartTimes[character] = nil
-		end
-
-		if regenerateBlock then
 			startBlockRegen(character)
 		end
 	end)

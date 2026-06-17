@@ -122,12 +122,13 @@ function CombatServiceClient.BindEvents()
 
 	blockAction.Released:Connect(function()
 		if not character:GetAttribute("IsBlocking") and not (blockTrack and blockTrack.IsPlaying) then
+			BlockRemote:FireServer(false)
 			return
 		end
 		if blockTrack then
 			blockTrack:Stop()
 		end
-		BlockRemote:FireServer(false, true)
+		BlockRemote:FireServer(false)
 		humanoid.WalkSpeed = fighterConfig.WalkSpeed.Base
 	end)
 end
