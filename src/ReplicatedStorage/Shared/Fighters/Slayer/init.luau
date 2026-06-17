@@ -13,17 +13,32 @@ local RS = game:GetService("ReplicatedStorage")
 local SlayerAnimations = RS.Assets.Animations.Slayer
 
 -- Slayer SFX
-local NormalSlice = RS.Assets.SFX.Fighters.Slayer.Normal
-local HeavySlice = RS.Assets.SFX.Fighters.Slayer.Heavy
+local NormalSliceSFX = RS.Assets.SFX.Fighters.Slayer.Normal
+local HeavySliceSFX = RS.Assets.SFX.Fighters.Slayer.Heavy
+local BlockBreakSFX = RS.Assets.SFX.Fighters.Slayer.BlockBreak
+local ParrySFX = RS.Assets.SFX.Fighters.Slayer.Parry
 
 Config.FighterConfig = {
-	M1Animations = {
-		SlayerAnimations.M1One,
-		SlayerAnimations.M1Two,
-		SlayerAnimations.M1Three,
+	Animations = {
+		M1Animations = {
+			{ Animation = SlayerAnimations.M1One },
+			{ Animation = SlayerAnimations.M1Two },
+			{
+				Animation = SlayerAnimations.M1Three,
+				Lunge = { LungeForce = 18, LungeDuration = 0.2 },
+			},
+		},
+		BlockAnimation = SlayerAnimations.Block,
+		BlockBreakAnimation = SlayerAnimations.BlockBreak,
+		ParryStunAnimation = SlayerAnimations.ParryStun,
+		KnockbackAnimation = SlayerAnimations.Knockback,
 	},
-	BlockAnimation = SlayerAnimations.Block,
-	SFX = { Normal = NormalSlice, Heavy = HeavySlice },
+	Stuns = {
+		BlockBreakDuration = 2,
+		ParryDuration = 1,
+	},
+	WalkSpeed = { Base = 16, Attacking = 12, Blocking = 8, Parried = 2, BlockBroken = 1.5 },
+	SFX = { NormalAttack = NormalSliceSFX, HeavyAttack = HeavySliceSFX, BlockBreak = BlockBreakSFX, Parry = ParrySFX },
 	Damage = { Normal = 3, Heavy = 8 },
 	MaxComboCount = 3,
 	Hitbox = {

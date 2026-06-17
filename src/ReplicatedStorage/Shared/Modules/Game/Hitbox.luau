@@ -19,6 +19,7 @@ function HitboxClientModule.CreateHitbox(humanoidRootPart: BasePart)
 			local hitbox = Instance.new("Part")
 			hitbox.Size = hitboxSize
 			hitbox.Color = Color3.new(1, 0, 0)
+			hitbox.TopSurface = Enum.SurfaceType.Smooth
 			hitbox.Transparency = 0.8
 			hitbox.Anchored = true
 			hitbox.CanCollide = false

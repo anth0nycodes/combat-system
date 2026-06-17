@@ -4,11 +4,11 @@ type Config = {
 	Combo: number,
 	ComboResetTime: number,
 	IsAttacking: boolean,
-	IsBlocking: boolean,
-	BlockMeter: number,
-	IsStunned: boolean,
 	ComboBreakTime: number,
 	LastAttackTime: number,
+	CurrentAnimationTrack: AnimationTrack?,
+	CanCancel: boolean,
+	AttackId: number,
 }
 
 export type CombatServiceClientType = {

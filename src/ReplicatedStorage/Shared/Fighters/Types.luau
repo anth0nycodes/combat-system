@@ -19,12 +19,29 @@ export type ProjectileHitboxConfig = {
 
 type HitboxConfig = BoxHitboxConfig | WeaponHitboxConfig | ProjectileHitboxConfig
 
+type M1AnimationData = {
+	Animation: Animation,
+	Lunge: { LungeForce: number, LungeDuration: number }?,
+}
+
 type FighterConfigType = {
-	M1Animations: { Animation },
-	BlockAnimation: Animation,
+	Animations: {
+		M1Animations: { M1AnimationData },
+		BlockAnimation: Animation,
+		BlockBreakAnimation: Animation,
+		ParryStunAnimation: Animation,
+		KnockbackAnimation: Animation,
+	},
+	Stuns: {
+		BlockBreakDuration: number,
+		ParryDuration: number,
+	},
+	WalkSpeed: { Base: number, Attacking: number, Blocking: number, Parried: number, BlockBroken: number },
 	SFX: {
-		Normal: Sound,
-		Heavy: Sound,
+		NormalAttack: Sound,
+		HeavyAttack: Sound,
+		BlockBreak: Sound,
+		Parry: Sound,
 	},
 	Damage: {
 		Normal: number,
