@@ -194,7 +194,9 @@ function CombatServiceServer.Init()
 			blockStartTimes[character] = os.clock()
 		else
 			blockStartTimes[character] = nil
-			startBlockRegen(character)
+			if not character:GetAttribute("IsStunned") then
+				startBlockRegen(character)
+			end
 		end
 	end)
 end
