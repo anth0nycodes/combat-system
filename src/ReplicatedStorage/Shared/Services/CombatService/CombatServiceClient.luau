@@ -21,6 +21,7 @@ local fighterConfig = FighterConfigModule.get()
 -- Remotes
 local AttackRemote = RS.Remotes.AttackRemote
 local BlockRemote = RS.Remotes.BlockRemote
+local SFXRemote = RS.Remotes.SFXRemote
 
 -- Utils
 local AnimationLoader = require(RS.Utils.AnimationLoader)
@@ -61,15 +62,12 @@ local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
 	character:GetAttributeChangedSignal("IsStunned"):Connect(function()
 		if character:GetAttribute("IsStunned") then
 			if character:GetAttribute("IsBlockBroken") then
-				local blockBreakSFX = fighterConfig.SFX.BlockBreak:Clone()
-				blockBreakSFX.Parent = humanoidRootPart
 				if blockTrack then
 					blockTrack:Stop()
 				end
 				local blockBreakTrack = AnimationLoader.LoadAnimation(fighterConfig.Animations.BlockBreakAnimation)
 				blockBreakTrack:Play()
 				blockBreakTrack:AdjustSpeed(2)
-				blockBreakSFX:Play()
 				humanoid.WalkSpeed = fighterConfig.WalkSpeed.BlockBroken
 				character:GetAttributeChangedSignal("IsBlockBroken"):Wait()
 				blockBreakTrack:Stop()
@@ -179,11 +177,6 @@ function CombatServiceClient.Attack()
 	CombatServiceClient.Config.CurrentAnimationTrack = currentAnimationTrack
 	CombatServiceClient.Config.CanCancel = false
 
-	local strikeSound = if CombatServiceClient.Config.Combo == fighterConfig.MaxComboCount
-		then fighterConfig.SFX.HeavyAttack:Clone()
-		else fighterConfig.SFX.NormalAttack:Clone()
-	strikeSound.Parent = humanoidRootPart
-
 	currentAnimationTrack:GetMarkerReachedSignal("Hit"):Connect(function()
 		if CombatServiceClient.Config.AttackId ~= attackId then
 			return
@@ -194,7 +187,9 @@ function CombatServiceClient.Attack()
 		if not humanoidRootPart then
 			return
 		end
-		strikeSound:Play()
+
+		local sfxEvent = if combo == fighterConfig.MaxComboCount then "Heavy" else "Normal"
+		SFXRemote:FireServer(sfxEvent)
 		HitboxClientModule.CreateHitbox(humanoidRootPart)
 		AttackRemote:FireServer(combo)
 	end)

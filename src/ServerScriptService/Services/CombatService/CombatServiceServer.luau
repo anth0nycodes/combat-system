@@ -16,6 +16,7 @@ local fighterConfig = FighterConfigModule.get()
 -- Remotes
 local AttackRemote = RS.Remotes.AttackRemote
 local BlockRemote = RS.Remotes.BlockRemote
+local SFXRemote = RS.Remotes.SFXRemote
 
 -- Constants
 local CombatServiceConstants = require(RS.Shared.Services.CombatService.Constants)
@@ -78,13 +79,13 @@ end
 
 local function processHit(combo: number, attackerCharacter: Model, hitHumanoid: Humanoid)
 	local hitCharacter = hitHumanoid.Parent :: Model
+	local defenderRootPart = hitCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
 	local NEW_BLOCK_METER_VALUE =
 		math.max(0, hitCharacter:GetAttribute("BlockMeter") :: number - CombatServiceConstants.BLOCK_DRAIN_AMOUNT)
 	local isBlockValid = false
 
 	if hitCharacter:GetAttribute("IsBlocking") then -- if the defender is blocking, reduce their block meter
 		local attackerRootPart = attackerCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
-		local defenderRootPart = hitCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
 		local directionToAttacker = (attackerRootPart.Position - defenderRootPart.Position).Unit
 		local defenderLookVector = defenderRootPart.CFrame.LookVector
 		local frontalDot = defenderLookVector:Dot(directionToAttacker)
@@ -106,15 +107,21 @@ local function processHit(combo: number, attackerCharacter: Model, hitHumanoid: 
 				return
 			else
 				isBlockValid = true
+				local blockDrainSFX = fighterConfig.SFX.BlockDrain:Clone()
+				blockDrainSFX.Parent = defenderRootPart
 				hitCharacter:SetAttribute("BlockMeter", NEW_BLOCK_METER_VALUE)
+				blockDrainSFX:Play()
 			end
 		end
 	end
 
 	if hitCharacter:GetAttribute("BlockMeter") == 0 and not hitCharacter:GetAttribute("IsStunned") then -- if the defender's block meter is empty, stun them and break their block
+		local blockBreakSFX = fighterConfig.SFX.BlockBreak:Clone()
+		blockBreakSFX.Parent = defenderRootPart
 		hitCharacter:SetAttribute("IsBlocking", false)
 		hitCharacter:SetAttribute("IsStunned", true)
 		hitCharacter:SetAttribute("IsBlockBroken", true)
+		blockBreakSFX:Play()
 		task.delay(fighterConfig.Stuns.BlockBreakDuration, function()
 			hitCharacter:SetAttribute("IsStunned", false)
 			hitCharacter:SetAttribute("IsBlockBroken", false)
@@ -122,6 +129,11 @@ local function processHit(combo: number, attackerCharacter: Model, hitHumanoid: 
 		end)
 	end
 
+	if not isBlockValid then
+		local impactSFX = fighterConfig.SFX.Impact:Clone()
+		impactSFX.Parent = defenderRootPart
+		impactSFX:Play()
+	end
 	local DAMAGE = getDamage(combo, isBlockValid)
 	hitHumanoid:TakeDamage(DAMAGE)
 end
@@ -132,11 +144,29 @@ function CombatServiceServer.Init()
 		setInitialPlayerCombatAttributes(player)
 	end
 
+	SFXRemote.OnServerEvent:Connect(function(player: Player, sfxName: string)
+		local character = player.Character or player.CharacterAdded:Wait()
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
+		local SFX: Sound
+		if sfxName == "Normal" then
+			SFX = fighterConfig.SFX.NormalAttack:Clone()
+		elseif sfxName == "Heavy" then
+			SFX = fighterConfig.SFX.HeavyAttack:Clone()
+		end
+		if not SFX then
+			return
+		end
+		SFX.Parent = humanoidRootPart
+		SFX:Play()
+	end)
+
 	AttackRemote.OnServerEvent:Connect(function(player: Player, combo: number)
 		local character = player.Character or player.CharacterAdded:Wait()
+
 		if character:GetAttribute("IsStunned") then -- if the attacker is stunned, they shouldn't be able to attack
 			return
 		end
+
 		local hitHumanoids = HitboxServerModule.CreateHitbox(player)
 
 		if not hitHumanoids then
