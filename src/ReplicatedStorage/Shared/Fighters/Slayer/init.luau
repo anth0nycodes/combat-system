@@ -15,6 +15,8 @@ local SlayerAnimations = RS.Assets.Animations.Slayer
 -- Slayer SFX
 local NormalSliceSFX = RS.Assets.SFX.Fighters.Slayer.Normal
 local HeavySliceSFX = RS.Assets.SFX.Fighters.Slayer.Heavy
+local ImpactSFX = RS.Assets.SFX.Fighters.Slayer.Impact
+local BlockDrainSFX = RS.Assets.SFX.Fighters.Slayer.BlockDrain
 local BlockBreakSFX = RS.Assets.SFX.Fighters.Slayer.BlockBreak
 local ParrySFX = RS.Assets.SFX.Fighters.Slayer.Parry
 
@@ -38,7 +40,14 @@ Config.FighterConfig = {
 		ParryDuration = 1,
 	},
 	WalkSpeed = { Base = 16, Attacking = 12, Blocking = 8, Parried = 2, BlockBroken = 1.5 },
-	SFX = { NormalAttack = NormalSliceSFX, HeavyAttack = HeavySliceSFX, BlockBreak = BlockBreakSFX, Parry = ParrySFX },
+	SFX = {
+		NormalAttack = NormalSliceSFX,
+		HeavyAttack = HeavySliceSFX,
+		Impact = ImpactSFX,
+		BlockDrain = BlockDrainSFX,
+		BlockBreak = BlockBreakSFX,
+		Parry = ParrySFX,
+	},
 	Damage = { Normal = 3, Heavy = 8 },
 	MaxComboCount = 3,
 	Hitbox = {
