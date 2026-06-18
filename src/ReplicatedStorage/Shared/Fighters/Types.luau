@@ -40,6 +40,8 @@ type FighterConfigType = {
 	SFX: {
 		NormalAttack: Sound,
 		HeavyAttack: Sound,
+		Impact: Sound,
+		BlockDrain: Sound,
 		BlockBreak: Sound,
 		Parry: Sound,
 	},
