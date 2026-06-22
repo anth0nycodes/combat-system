@@ -3,11 +3,17 @@
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
+      "Packages": {
+        "$path": "Packages"
+      },
       "$className": "ReplicatedStorage",
       "$ignoreUnknownInstances": true,
       "$path": "src/ReplicatedStorage"
     },
     "ServerScriptService": {
+      "ServerPackages": {
+        "$path": "ServerPackages"
+      },
       "$className": "ServerScriptService",
       "$path": "src/ServerScriptService"
     },
