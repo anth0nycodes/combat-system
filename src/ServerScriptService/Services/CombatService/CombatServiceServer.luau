@@ -79,6 +79,11 @@ end
 
 local function processHit(combo: number, attackerCharacter: Model, hitHumanoid: Humanoid)
 	local hitCharacter = hitHumanoid.Parent :: Model
+	local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)
+	if not hitPlayer or hitPlayer:GetAttribute("IsInMainMenu") then
+		return
+	end
+
 	local defenderRootPart = hitCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
 	local NEW_BLOCK_METER_VALUE =
 		math.max(0, hitCharacter:GetAttribute("BlockMeter") :: number - CombatServiceConstants.BLOCK_DRAIN_AMOUNT)

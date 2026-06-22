@@ -79,7 +79,7 @@ function MainMenu.Init()
 
 	playButtonAction.Released:Connect(function()
 		combatContext.Enabled = true
-		PlayerRemote:FireServer("UnanchorHumanoidRootPart")
+		PlayerRemote:FireServer("StartGame")
 		buttonRelease:Play()
 
 		-- Initialize all main game GUIs
