@@ -5,3 +5,7 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
+Wire = "elentium/wire@0.0.4"
+
+[server-dependencies]
+ProfileStore = "lm-loleris/profilestore@1.0.3"
