@@ -4,11 +4,14 @@ local PlayerStateServiceServer = {}
 -- Game Services
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
+
+-- Packages
 local DataService = require(RS.Packages.DataService).server
 
 -- Remotes
 local PlayerRemote = RS.Remotes.PlayerRemote :: RemoteEvent
 local FighterSelectionRemote = RS.Remotes.FighterSelectionRemote :: RemoteEvent
+local SettingsRemote = RS.Remotes.SettingsRemote :: RemoteEvent
 
 local loadingCharacter: { [Player]: boolean } = {}
 
@@ -46,6 +49,10 @@ function PlayerStateServiceServer.Init()
 			humanoidRootPart.Anchored = false
 			player:SetAttribute("IsInMainMenu", false)
 		end
+	end)
+
+	SettingsRemote.OnServerEvent:Connect(function(player: Player, settingName: string, value: any)
+		DataService:set(player, { "settings", settingName }, value)
 	end)
 
 	FighterSelectionRemote.OnServerEvent:Connect(function(player: Player, fighterName: string)

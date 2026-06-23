@@ -3,12 +3,17 @@
 -- Game Services
 local RS = game:GetService("ReplicatedStorage")
 
+-- Packages
 local DataService = require(RS.Packages.DataService).server
+
 local services = script.Parent.Services
 
 DataService:init({
 	template = {
 		selectedFighter = "Brawler",
+		settings = {
+			isHitboxChecked = false,
+		},
 	},
 })
 
