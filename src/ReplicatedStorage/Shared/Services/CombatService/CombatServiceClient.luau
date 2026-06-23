@@ -195,7 +195,7 @@ function CombatServiceClient.Attack()
 
 		local sfxEvent = if combo == fighterConfig.MaxComboCount then "Heavy" else "Normal"
 		SFXRemote:FireServer(sfxEvent)
-		HitboxClientModule.CreateHitbox(player, humanoidRootPart)
+		HitboxClientModule.CreateHitbox(humanoidRootPart)
 		AttackRemote:FireServer(combo)
 	end)
 

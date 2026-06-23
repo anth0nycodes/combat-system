@@ -9,6 +9,9 @@ local services = script.Parent.Services
 DataService:init({
 	template = {
 		selectedFighter = "Brawler",
+		settings = {
+			isHitboxChecked = false,
+		},
 	},
 })
 

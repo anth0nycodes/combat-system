@@ -6,6 +6,12 @@ local TS = game:GetService("TweenService")
 local RS = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
+-- Packages
+local DataService = require(RS.Packages.DataService).client
+
+-- Remotes
+local SettingsRemote = RS.Remotes.SettingsRemote :: RemoteEvent
+
 -- Player
 local player = Players.LocalPlayer
 assert(player, "Player is not defined")
@@ -36,9 +42,6 @@ local buttonRelease = RS.Assets.SFX.GuiButtonRelease
 
 -- Module Config
 local isSettingsOpen = false
-SettingsModule.Config = {
-	isHitboxChecked = false,
-}
 
 function SettingsModule.Init()
 	settingsButtonAction.TapAndClick.UIButton = settingsButton
@@ -66,13 +69,17 @@ function SettingsModule.ToggleVisibility()
 end
 
 function SettingsModule.HandleOptionChecked()
+	local initialHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
+	hitboxOptionCheckbox.Text = if initialHitboxChecked then "✓" else ""
+
 	hitboxOptionCheckbox.MouseButton1Down:Connect(function()
 		buttonPress:Play()
 	end)
 	hitboxOptionCheckbox.MouseButton1Up:Connect(function()
-		SettingsModule.Config.isHitboxChecked = not SettingsModule.Config.isHitboxChecked
+		local isHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
+		SettingsRemote:FireServer("isHitboxChecked", not isHitboxChecked)
 		buttonRelease:Play()
-		if SettingsModule.Config.isHitboxChecked then
+		if not isHitboxChecked then
 			hitboxOptionCheckbox.Text = "✓"
 		else
 			hitboxOptionCheckbox.Text = ""
