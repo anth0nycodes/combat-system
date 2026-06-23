@@ -3,6 +3,8 @@ local FighterConfig = {}
 
 -- Game Services
 local RS = game:GetService("ReplicatedStorage")
+
+-- Packages
 local DataService = require(RS.Packages.DataService).client
 
 -- Types

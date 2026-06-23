@@ -76,6 +76,7 @@ function SettingsModule.HandleOptionChecked()
 		buttonPress:Play()
 	end)
 	hitboxOptionCheckbox.MouseButton1Up:Connect(function()
+		-- Re-read from DataService each click to get current value, not a stale captured one
 		local isHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
 		SettingsRemote:FireServer("isHitboxChecked", not isHitboxChecked)
 		buttonRelease:Play()
