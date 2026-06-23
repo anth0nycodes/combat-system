@@ -14,9 +14,9 @@ assert(player, "Player is not defined")
 local playerGui = player.PlayerGui
 
 -- Types
-local Types = require(script.Types)
+local LoadingScreenTypes = require(script.Types)
 
-local loadingScreenGuiTemplate = RS.Assets.GUIs.LoadingScreenGui :: Types.LoadingScreenGui
+local loadingScreenGuiTemplate = RS.Assets.GUIs.LoadingScreenGui :: LoadingScreenTypes.LoadingScreenGui
 local loadingScreenGui = loadingScreenGuiTemplate:Clone()
 local loadingFrame = loadingScreenGui.LoadingFrame
 local loadingCanvasGroup = loadingFrame.CanvasGroup

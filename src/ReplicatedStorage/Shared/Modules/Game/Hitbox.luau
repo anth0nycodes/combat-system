@@ -8,10 +8,9 @@ local RS = game:GetService("ReplicatedStorage")
 local SettingsModule = require(RS.UI.Menus.MainGameGui.Settings)
 local FighterConfigModule = require(RS.Utils.FighterConfig)
 
--- Fighter Config
-local fighterConfig = FighterConfigModule.get()
+function HitboxClientModule.CreateHitbox(player: Player, humanoidRootPart: BasePart)
+	local fighterConfig = FighterConfigModule.get()
 
-function HitboxClientModule.CreateHitbox(humanoidRootPart: BasePart)
 	if fighterConfig.Hitbox.HitboxType == "Box" then
 		if SettingsModule.Config.isHitboxChecked then
 			local hitboxCFrame = humanoidRootPart.CFrame * fighterConfig.Hitbox.CFrame

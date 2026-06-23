@@ -24,7 +24,7 @@ type M1AnimationData = {
 	Lunge: { LungeForce: number, LungeDuration: number }?,
 }
 
-type FighterConfigType = {
+export type FighterConfigType = {
 	Animations: {
 		M1Animations: { M1AnimationData },
 		BlockAnimation: Animation,

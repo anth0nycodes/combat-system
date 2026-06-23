@@ -3,8 +3,8 @@
 -- TODO: Swap out slayer animation assets for the actual slayer animations once they are done
 
 -- Types
-local Types = require(script.Parent.Types)
-local Config = {} :: Types.ConfigType
+local FighterTypes = require(script.Parent.Types)
+local Config = {} :: FighterTypes.ConfigType
 
 -- Game Services
 local RS = game:GetService("ReplicatedStorage")
@@ -54,7 +54,7 @@ Config.FighterConfig = {
 		HitboxType = "Box",
 		Size = Vector3.new(8, 8, 8),
 		CFrame = CFrame.new(0, 0, -2.5),
-	} :: Types.BoxHitboxConfig,
+	} :: FighterTypes.BoxHitboxConfig,
 }
 
 return Config

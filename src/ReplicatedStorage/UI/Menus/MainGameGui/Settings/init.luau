@@ -12,10 +12,10 @@ assert(player, "Player is not defined")
 local playerGui = player.PlayerGui
 
 -- Types
-local Types = require(script.Types)
+local SettingsTypes = require(script.Types)
 
 -- GUI Template
-local settingsGuiTemplate = RS.Assets.GUIs.SettingsGui :: Types.SettingsGui
+local settingsGuiTemplate = RS.Assets.GUIs.SettingsGui :: SettingsTypes.SettingsGui
 
 -- GUIs
 local settingsGui = settingsGuiTemplate:Clone()

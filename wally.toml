@@ -6,6 +6,4 @@ realm = "shared"
 
 [dependencies]
 Wire = "elentium/wire@0.0.4"
-
-[server-dependencies]
-ProfileStore = "lm-loleris/profilestore@1.0.3"
+DataService = "leifstout/dataservice@1.0.0"

@@ -6,21 +6,31 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 
 -- Types
-local Types = require(script.Types)
+local FighterSelectionTypes = require(script.Types)
 
 -- Player
 local player = Players.LocalPlayer
 assert(player, "Player is not defined")
 local playerGui = player.PlayerGui
 
+-- Remotes
+local FighterSelectionRemote = RS.Remotes.FighterSelectionRemote :: RemoteEvent
+
 -- Inputs
-local fighterSelectionButtonAction = RS.Inputs.GUIs.MainGame.FighterSelectionButton
+local toggleFighterListAction = RS.Inputs.GUIs.MainGame.FighterSelectionButton
 
 -- GUIs
-local fighterSelectionGuiTemplate = RS.Assets.GUIs.FighterSelectionGui :: Types.FighterSelectionGui
+local fighterSelectionGuiTemplate = RS.Assets.GUIs.FighterSelectionGui :: FighterSelectionTypes.FighterSelectionGui
 local fighterSelectionGui = fighterSelectionGuiTemplate:Clone()
 local fighterSelectionButton = fighterSelectionGui.Container.FighterSelectionButton
 local fighterList = fighterSelectionGui.Container.FighterList
+local BrawlerButton = fighterList.Brawler
+local SlayerButton = fighterList.Slayer
+local fighterButtons = { Brawler = BrawlerButton, Slayer = SlayerButton }
+local fighterSelectionInputActions = {
+	Brawler = RS.Inputs.GUIs.MainGame.Fighters.Brawler,
+	Slayer = RS.Inputs.GUIs.MainGame.Fighters.Slayer,
+}
 
 -- SFX
 local buttonPress = RS.Assets.SFX.GuiButtonPress
@@ -30,18 +40,35 @@ local buttonRelease = RS.Assets.SFX.GuiButtonRelease
 local isFighterListOpen = false
 
 function FighterSelectionModule.Init()
-	fighterSelectionButtonAction.TapAndClick.UIButton = fighterSelectionButton
+	toggleFighterListAction.TapAndClick.UIButton = fighterSelectionButton
 	fighterSelectionGui.Parent = playerGui
-	fighterSelectionButtonAction.Pressed:Connect(FighterSelectionModule.ToggleFighters)
-	fighterSelectionButtonAction.Released:Connect(function()
+	toggleFighterListAction.Pressed:Connect(FighterSelectionModule.ToggleFighters)
+	toggleFighterListAction.Released:Connect(function()
 		buttonRelease:Play()
 		fighterList.Visible = isFighterListOpen
 	end)
+
+	for name, action in fighterSelectionInputActions do
+		local fighterName = name :: string
+		local fighterSelectionInputAction = action :: InputAction & { TapAndClick: InputBinding }
+		fighterSelectionInputAction.TapAndClick.UIButton = fighterButtons[fighterName]
+		fighterSelectionInputAction.Pressed:Connect(function()
+			buttonPress:Play()
+		end)
+		fighterSelectionInputAction.Released:Connect(function()
+			buttonRelease:Play()
+			FighterSelectionModule.SelectFighter(fighterName)
+		end)
+	end
 end
 
 function FighterSelectionModule.ToggleFighters()
 	buttonPress:Play()
 	isFighterListOpen = not isFighterListOpen
+end
+
+function FighterSelectionModule.SelectFighter(fighterName: string)
+	FighterSelectionRemote:FireServer(fighterName)
 end
 
 return FighterSelectionModule

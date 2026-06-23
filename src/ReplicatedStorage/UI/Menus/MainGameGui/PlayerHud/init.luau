@@ -6,7 +6,8 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 
 -- Types
-local Types = require(script.Types)
+local PlayerHudTypes = require(script.Types)
+local FighterConfigTypes = require(RS.Shared.Fighters.Types)
 
 -- Player
 local player = Players.LocalPlayer
@@ -23,13 +24,13 @@ local CharacterLoader = require(RS.Utils.CharacterLoader)
 local AnimationLoader = require(RS.Utils.AnimationLoader)
 
 -- Fighter Config
-local fighterConfig = FighterConfigModule.get()
+local fighterConfig: FighterConfigTypes.FighterConfigType
 
 -- SFX
 local HealthDrainSFX = RS.Assets.SFX.HealthDrain :: Sound
 
 -- GUIs
-local playerHudGuiTemplate = RS.Assets.GUIs.PlayerHudGui :: Types.PlayerHudGui
+local playerHudGuiTemplate = RS.Assets.GUIs.PlayerHudGui :: PlayerHudTypes.PlayerHudGui
 local playerHudGui = playerHudGuiTemplate:Clone()
 local playerStats = playerHudGui.Container.PlayerStats
 local healthStat = playerStats.Health
@@ -68,6 +69,7 @@ local function updateBlockStat()
 end
 
 local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
+	fighterConfig = FighterConfigModule.get()
 	character = newCharacter
 	humanoid = newHumanoid
 	previousPlayerHealth = math.round(humanoid.Health)

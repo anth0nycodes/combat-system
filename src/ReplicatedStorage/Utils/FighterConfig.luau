@@ -3,12 +3,21 @@ local FighterConfig = {}
 
 -- Game Services
 local RS = game:GetService("ReplicatedStorage")
+local DataService = require(RS.Packages.DataService).client
 
-function FighterConfig.get()
+-- Types
+local FighterConfigTypes = require(RS.Shared.Fighters.Types)
+
+function FighterConfig.get(fighterName: string?)
 	local Fighters = RS.Shared.Fighters
-	local fighter = Fighters.Brawler -- Default to Brawler for now, can change later when implementing fighter selection logic
-	local fighterConfigModule = require(fighter)
-	local fighterConfig = fighterConfigModule.FighterConfig
+	local name = fighterName or DataService:get("selectedFighter") or "Brawler" -- Defaults to Brawler
+	local fighter = Fighters:FindFirstChild(name)
+	if not fighter then
+		warn(`FighterConfig.get: {name} fighter not found. Defaulting to Brawler.`)
+		fighter = Fighters.Brawler -- Defaults to Brawler again for extra safety
+	end
+	local fighterConfigModule = require(fighter) :: any
+	local fighterConfig = fighterConfigModule.FighterConfig :: FighterConfigTypes.FighterConfigType
 	return fighterConfig
 end
 
