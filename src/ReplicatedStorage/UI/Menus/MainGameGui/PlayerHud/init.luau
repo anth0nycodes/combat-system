@@ -69,8 +69,7 @@ local function updateBlockStat()
 end
 
 local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
-	local fighterName = player:GetAttribute("SelectedFighter") :: string
-	fighterConfig = FighterConfigModule.get(fighterName)
+	fighterConfig = FighterConfigModule.get()
 	character = newCharacter
 	humanoid = newHumanoid
 	previousPlayerHealth = math.round(humanoid.Health)

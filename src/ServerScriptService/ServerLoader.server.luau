@@ -1,5 +1,16 @@
 --!strict
+
+-- Game Services
+local RS = game:GetService("ReplicatedStorage")
+
+local DataService = require(RS.Packages.DataService).server
 local services = script.Parent.Services
+
+DataService:init({
+	template = {
+		selectedFighter = "Brawler",
+	},
+})
 
 for _, service in services:GetChildren() do
 	local serviceName = service.Name

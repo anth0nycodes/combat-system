@@ -9,8 +9,7 @@ local SettingsModule = require(RS.UI.Menus.MainGameGui.Settings)
 local FighterConfigModule = require(RS.Utils.FighterConfig)
 
 function HitboxClientModule.CreateHitbox(player: Player, humanoidRootPart: BasePart)
-	local fighterName = player:GetAttribute("SelectedFighter") :: string
-	local fighterConfig = FighterConfigModule.get(fighterName)
+	local fighterConfig = FighterConfigModule.get()
 
 	if fighterConfig.Hitbox.HitboxType == "Box" then
 		if SettingsModule.Config.isHitboxChecked then

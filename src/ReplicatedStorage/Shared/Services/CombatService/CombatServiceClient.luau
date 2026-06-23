@@ -55,8 +55,7 @@ CombatServiceClient.Config = {
 }
 
 local function onCharacterAdded(newCharacter: Model, newHumanoid: Humanoid)
-	local fighterName = player:GetAttribute("SelectedFighter")
-	fighterConfig = FighterConfigModule.get(fighterName)
+	fighterConfig = FighterConfigModule.get()
 	character = newCharacter
 	humanoid = newHumanoid
 	humanoidRootPart = character:WaitForChild("HumanoidRootPart") :: BasePart

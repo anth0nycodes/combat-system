@@ -23,8 +23,10 @@ local activeRegenTasks: { [Model]: boolean } = {}
 
 local blockStartTimes: { [Model]: number } = {}
 
+local DataService = require(RS.Packages.DataService).server
+
 local function getPlayerFighterConfig(player: Player)
-	local fighterName = player:GetAttribute("SelectedFighter") :: string
+	local fighterName = DataService:get(player, { "selectedFighter" }) :: string
 	return FighterConfigModule.get(fighterName)
 end
 

@@ -4,6 +4,7 @@ local PlayerStateServiceServer = {}
 -- Game Services
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
+local DataService = require(RS.Packages.DataService).server
 
 -- Remotes
 local PlayerRemote = RS.Remotes.PlayerRemote :: RemoteEvent
@@ -56,7 +57,7 @@ function PlayerStateServiceServer.Init()
 			return
 		end
 		loadingCharacter[player] = true
-		player:SetAttribute("SelectedFighter", fighterName)
+		DataService:set(player, { "selectedFighter" }, fighterName)
 		player:LoadCharacterAsync()
 		loadingCharacter[player] = nil
 	end)
