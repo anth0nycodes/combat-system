@@ -69,22 +69,16 @@ function SettingsModule.ToggleVisibility()
 end
 
 function SettingsModule.HandleOptionChecked()
-	local initialHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
-	hitboxOptionCheckbox.Text = if initialHitboxChecked then "✓" else ""
-
+	local isHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
+	hitboxOptionCheckbox.Text = if isHitboxChecked then "✓" else ""
 	hitboxOptionCheckbox.MouseButton1Down:Connect(function()
 		buttonPress:Play()
 	end)
 	hitboxOptionCheckbox.MouseButton1Up:Connect(function()
-		-- Re-read from DataService each click to get current value, not a stale captured one
-		local isHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
-		SettingsRemote:FireServer("isHitboxChecked", not isHitboxChecked)
 		buttonRelease:Play()
-		if not isHitboxChecked then
-			hitboxOptionCheckbox.Text = "✓"
-		else
-			hitboxOptionCheckbox.Text = ""
-		end
+		isHitboxChecked = not isHitboxChecked
+		hitboxOptionCheckbox.Text = if isHitboxChecked then "✓" else ""
+		SettingsRemote:FireServer("isHitboxChecked", isHitboxChecked)
 	end)
 end
 
