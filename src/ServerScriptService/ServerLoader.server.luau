@@ -2,6 +2,7 @@
 
 -- Game Services
 local RS = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 -- Packages
 local DataService = require(RS.Packages.DataService).server
@@ -11,11 +12,26 @@ local services = script.Parent.Services
 DataService:init({
 	template = {
 		selectedFighter = "Brawler",
+		totalKills = 0,
 		settings = {
 			isHitboxChecked = false,
 		},
 	},
 })
+
+Players.PlayerAdded:Connect(function(player: Player)
+	DataService:waitForData(player)
+	local leaderstats = Instance.new("Folder", player)
+	leaderstats.Name = "leaderstats"
+
+	local kills = Instance.new("IntValue", leaderstats)
+	kills.Name = "Kills"
+	kills.Value = 0
+
+	local totalKills = Instance.new("IntValue", leaderstats)
+	totalKills.Name = "Total Kills"
+	totalKills.Value = DataService:get(player, { "totalKills" })
+end)
 
 for _, service in services:GetChildren() do
 	local serviceName = service.Name

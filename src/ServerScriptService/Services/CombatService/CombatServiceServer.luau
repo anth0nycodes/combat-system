@@ -85,9 +85,11 @@ end
 local function processHit(player: Player, combo: number, attackerCharacter: Model, hitHumanoid: Humanoid)
 	local hitCharacter = hitHumanoid.Parent :: Model
 	local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)
+	local attackerLeaderstats =
+		player:FindFirstChild("leaderstats") :: Folder & { Kills: IntValue, ["Total Kills"]: IntValue }
 
 	-- Ignore damage prevention logic for dummies
-	if hitCharacter.Name ~= "Dummy" then
+	if hitCharacter.Name ~= "Dummy" and hitCharacter.Name ~= "Killable Dummy" then
 		if not hitPlayer or hitPlayer:GetAttribute("IsInMainMenu") then
 			return
 		end
@@ -153,6 +155,16 @@ local function processHit(player: Player, combo: number, attackerCharacter: Mode
 	end
 	local DAMAGE = getDamage(player, combo, isBlockValid)
 	hitHumanoid:TakeDamage(DAMAGE)
+
+	if hitCharacter.Name ~= "Dummy" then
+		if hitHumanoid.Health <= 0 then
+			attackerLeaderstats.Kills.Value += 1
+			DataService:update(player, "totalKills", function(currentTotalKills: number)
+				return currentTotalKills + 1
+			end)
+			attackerLeaderstats["Total Kills"].Value += 1
+		end
+	end
 end
 
 function CombatServiceServer.Init()
