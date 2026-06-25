@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 
 -- Packages
+local Janitor = require(RS.Packages.Janitor)
 local DataService = require(RS.Packages.DataService).server
 
 -- Remotes
@@ -16,17 +17,25 @@ local NotificationRemote = RS.Remotes.NotificationRemote :: RemoteEvent
 
 local loadingCharacter: { [Player]: boolean } = {}
 local fighterSelectionCooldowns: { [Player]: number } = {}
+local playerJanitors: { [Player]: typeof(Janitor.new()) } = {}
 
-function PlayerStateServiceServer.Init()
-	Players.PlayerAdded:Connect(function(player: Player)
-		player:SetAttribute("IsInMainMenu", true)
+local function setupPlayer(player: Player)
+	local janitor = Janitor.new()
+	playerJanitors[player] = janitor
 
-		local character = player.Character or player.CharacterAdded:Wait()
-		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
-		if humanoidRootPart then
-			humanoidRootPart.Anchored = true
-		end
+	player:SetAttribute("IsInMainMenu", true)
 
+	local character = player.Character
+	if not character then
+		return
+	end
+
+	local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
+	if humanoidRootPart then
+		humanoidRootPart.Anchored = true
+	end
+
+	janitor:Add(
 		player.CharacterAdded:Connect(function(newCharacter: Model)
 			if not player:GetAttribute("IsInMainMenu") then
 				return
@@ -36,11 +45,39 @@ function PlayerStateServiceServer.Init()
 			if hrp then
 				hrp.Anchored = true
 			end
-		end)
+		end),
+		"Disconnect"
+	)
+
+	janitor:Add(function()
+		loadingCharacter[player] = nil
+		fighterSelectionCooldowns[player] = 0
+	end, true)
+end
+
+function PlayerStateServiceServer.Init()
+	Players.PlayerAdded:Connect(setupPlayer)
+	for _, player in Players:GetPlayers() do
+		if playerJanitors[player] then
+			continue
+		end
+		setupPlayer(player)
+	end
+
+	Players.PlayerRemoving:Connect(function(player: Player)
+		local janitor = playerJanitors[player]
+		if not janitor then
+			return
+		end
+		janitor:Destroy()
+		playerJanitors[player] = nil
 	end)
 
 	PlayerRemote.OnServerEvent:Connect(function(player: Player, event: string)
-		local character = player.Character or player.CharacterAdded:Wait()
+		local character = player.Character
+		if not character then
+			return
+		end
 
 		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
 		if not humanoidRootPart then
@@ -58,7 +95,11 @@ function PlayerStateServiceServer.Init()
 	end)
 
 	FighterSelectionRemote.OnServerEvent:Connect(function(player: Player, fighterName: string)
-		local character = player.Character or player.CharacterAdded:Wait()
+		local character = player.Character
+		if not character then
+			return
+		end
+
 		local currentSelectedFighter = DataService:get(player, { "selectedFighter" })
 		local humanoid = character:FindFirstChildOfClass("Humanoid")
 		if not humanoid then

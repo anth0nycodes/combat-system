@@ -25,6 +25,9 @@ local blockStartTimes: { [Model]: number } = {}
 
 -- Packages
 local DataService = require(RS.Packages.DataService).server
+local Janitor = require(RS.Packages.Janitor)
+
+local playerJanitors: { [Player]: typeof(Janitor.new()) } = {}
 
 local function getPlayerFighterConfig(player: Player)
 	local fighterName = DataService:get(player, { "selectedFighter" }) :: string
@@ -32,44 +35,61 @@ local function getPlayerFighterConfig(player: Player)
 end
 
 local function startBlockRegen(character: Model)
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local player = Players:GetPlayerFromCharacter(character)
+	local janitor = playerJanitors[player]
+	if not janitor then
+		return
+	end
 
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not humanoid then
 		return
 	end
+
 	if activeRegenTasks[character] then
 		return
 	end
 	activeRegenTasks[character] = true
 
 	-- task.spawn to prevent yielding the current thread wherever this function is called
-	task.spawn(function()
-		while
-			activeRegenTasks[character]
-			and character:GetAttribute("BlockMeter") < 100
-			and not character:GetAttribute("IsBlocking")
-			and humanoid.Health > 0
-			and character.Parent
-		do
-			local currentBlockMeter = character:GetAttribute("BlockMeter") :: number
-			character:SetAttribute(
-				"BlockMeter",
-				math.min(100, currentBlockMeter + CombatServiceConstants.BLOCK_REGEN_RATE)
-			)
-			task.wait(CombatServiceConstants.BLOCK_REGEN_INTERVAL)
-		end
-		activeRegenTasks[character] = nil
-	end)
+	janitor:Add(
+		task.spawn(function()
+			while
+				activeRegenTasks[character]
+				and character:GetAttribute("BlockMeter") < 100
+				and not character:GetAttribute("IsBlocking")
+				and humanoid.Health > 0
+				and character.Parent
+			do
+				local currentBlockMeter = character:GetAttribute("BlockMeter") :: number
+				character:SetAttribute(
+					"BlockMeter",
+					math.min(100, currentBlockMeter + CombatServiceConstants.BLOCK_REGEN_RATE)
+				)
+				task.wait(CombatServiceConstants.BLOCK_REGEN_INTERVAL)
+			end
+			activeRegenTasks[character] = nil
+		end),
+		true
+	)
 end
 
 local function setInitialPlayerCombatAttributes(player: Player)
-	player.CharacterAdded:Connect(function(character)
-		character:SetAttribute("IsBlocking", false)
-		character:SetAttribute("BlockMeter", 100)
-		character:SetAttribute("IsStunned", false)
-		character:SetAttribute("IsParryStunned", false)
-		character:SetAttribute("IsBlockBroken", false)
-	end)
+	local janitor = playerJanitors[player]
+	if not janitor then
+		return
+	end
+
+	janitor:Add(
+		player.CharacterAdded:Connect(function(character)
+			character:SetAttribute("IsBlocking", false)
+			character:SetAttribute("BlockMeter", 100)
+			character:SetAttribute("IsStunned", false)
+			character:SetAttribute("IsParryStunned", false)
+			character:SetAttribute("IsBlockBroken", false)
+		end),
+		"Disconnect"
+	)
 end
 
 local function getDamage(player: Player, combo: number, isBlocking: boolean)
@@ -123,6 +143,9 @@ local function processHit(player: Player, combo: number, attackerCharacter: Mode
 					attackerCharacter:SetAttribute("IsStunned", false)
 					attackerCharacter:SetAttribute("IsParryStunned", false)
 				end)
+				parrySFX.Ended:Once(function()
+					parrySFX:Destroy()
+				end)
 				return
 			else
 				isBlockValid = true
@@ -130,6 +153,9 @@ local function processHit(player: Player, combo: number, attackerCharacter: Mode
 				blockDrainSFX.Parent = defenderRootPart
 				hitCharacter:SetAttribute("BlockMeter", NEW_BLOCK_METER_VALUE)
 				blockDrainSFX:Play()
+				blockDrainSFX.Ended:Once(function()
+					blockDrainSFX:Destroy()
+				end)
 			end
 		end
 	end
@@ -146,12 +172,18 @@ local function processHit(player: Player, combo: number, attackerCharacter: Mode
 			hitCharacter:SetAttribute("IsBlockBroken", false)
 			startBlockRegen(hitCharacter)
 		end)
+		blockBreakSFX.Ended:Once(function()
+			blockBreakSFX:Destroy()
+		end)
 	end
 
 	if not isBlockValid then
 		local impactSFX = attackerFighterConfig.SFX.Impact:Clone()
 		impactSFX.Parent = defenderRootPart
 		impactSFX:Play()
+		impactSFX.Ended:Once(function()
+			impactSFX:Destroy()
+		end)
 	end
 	local DAMAGE = getDamage(player, combo, isBlockValid)
 	hitHumanoid:TakeDamage(DAMAGE)
@@ -167,15 +199,46 @@ local function processHit(player: Player, combo: number, attackerCharacter: Mode
 	end
 end
 
+local function setupPlayer(player: Player)
+	local janitor = Janitor.new()
+	playerJanitors[player] = janitor
+	setInitialPlayerCombatAttributes(player)
+
+	janitor:Add(function()
+		local character = player.Character
+		if not character then
+			return
+		end
+		activeRegenTasks[character] = nil
+		blockStartTimes[character] = nil
+	end, true)
+end
+
 function CombatServiceServer.Init()
-	Players.PlayerAdded:Connect(setInitialPlayerCombatAttributes)
+	Players.PlayerAdded:Connect(setupPlayer)
 	for _, player in Players:GetPlayers() do
-		setInitialPlayerCombatAttributes(player)
+		if playerJanitors[player] then
+			continue
+		end
+		setupPlayer(player)
 	end
+
+	Players.PlayerRemoving:Connect(function(player: Player)
+		local janitor = playerJanitors[player]
+		if not janitor then
+			return
+		end
+		janitor:Destroy()
+		playerJanitors[player] = nil
+	end)
 
 	SFXRemote.OnServerEvent:Connect(function(player: Player, sfxName: string)
 		local fighterConfig = getPlayerFighterConfig(player)
-		local character = player.Character or player.CharacterAdded:Wait()
+		local character = player.Character
+		if not character then
+			return
+		end
+
 		local attackerRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
 		local SFX: Sound
 		if sfxName == "Normal" then
@@ -188,20 +251,22 @@ function CombatServiceServer.Init()
 		end
 		SFX.Parent = attackerRootPart
 		SFX:Play()
+		SFX.Ended:Once(function()
+			SFX:Destroy()
+		end)
 	end)
 
 	AttackRemote.OnServerEvent:Connect(function(player: Player, combo: number)
-		local character = player.Character or player.CharacterAdded:Wait()
+		local character = player.Character
+		if not character then
+			return
+		end
 
 		if character:GetAttribute("IsStunned") then -- if the attacker is stunned, they shouldn't be able to attack
 			return
 		end
 
 		local hitHumanoids = HitboxServerModule.CreateHitbox(player)
-
-		if not hitHumanoids then
-			return
-		end
 
 		for _, humanoid in hitHumanoids do
 			if humanoid.Health <= 0 then
@@ -212,7 +277,10 @@ function CombatServiceServer.Init()
 	end)
 
 	BlockRemote.OnServerEvent:Connect(function(player: Player, isBlocking: boolean)
-		local character = player.Character or player.CharacterAdded:Wait()
+		local character = player.Character
+		if not character then
+			return
+		end
 		-- the isBlocking check is necessary to prevent exploiters from manually sending `true` to the server despite their meter being too low to block
 		if isBlocking and character:GetAttribute("BlockMeter") < CombatServiceConstants.BLOCK_DRAIN_AMOUNT then -- if the player's block meter is too low, they shouldn't be able to block
 			return
