@@ -268,10 +268,6 @@ function CombatServiceServer.Init()
 
 		local hitHumanoids = HitboxServerModule.CreateHitbox(player)
 
-		if not hitHumanoids then
-			return
-		end
-
 		for _, humanoid in hitHumanoids do
 			if humanoid.Health <= 0 then
 				continue
