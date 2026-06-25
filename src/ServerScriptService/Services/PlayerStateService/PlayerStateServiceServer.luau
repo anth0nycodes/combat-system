@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 
 -- Packages
+local Janitor = require(RS.Packages.Janitor)
 local DataService = require(RS.Packages.DataService).server
 
 -- Remotes
@@ -16,9 +17,13 @@ local NotificationRemote = RS.Remotes.NotificationRemote :: RemoteEvent
 
 local loadingCharacter: { [Player]: boolean } = {}
 local fighterSelectionCooldowns: { [Player]: number } = {}
+local playerJanitors: { [Player]: any } = {}
 
 function PlayerStateServiceServer.Init()
 	Players.PlayerAdded:Connect(function(player: Player)
+		local janitor = Janitor.new()
+		playerJanitors[player] = janitor
+
 		player:SetAttribute("IsInMainMenu", true)
 
 		local character = player.Character or player.CharacterAdded:Wait()
@@ -27,7 +32,7 @@ function PlayerStateServiceServer.Init()
 			humanoidRootPart.Anchored = true
 		end
 
-		player.CharacterAdded:Connect(function(newCharacter: Model)
+		janitor:Add(player.CharacterAdded:Connect(function(newCharacter: Model)
 			if not player:GetAttribute("IsInMainMenu") then
 				return
 			end
@@ -36,7 +41,20 @@ function PlayerStateServiceServer.Init()
 			if hrp then
 				hrp.Anchored = true
 			end
-		end)
+		end), "Disconnect")
+
+		janitor:Add(function()
+			loadingCharacter[player] = nil
+			fighterSelectionCooldowns[player] = 0
+		end, true)
+	end)
+
+	Players.PlayerRemoving:Connect(function(player: Player)
+		local janitor = playerJanitors[player]
+		if janitor then
+			janitor:Destroy()
+			playerJanitors[player] = nil
+		end
 	end)
 
 	PlayerRemote.OnServerEvent:Connect(function(player: Player, event: string)
