@@ -90,7 +90,7 @@ function PlayerStateServiceServer.Init()
 		end
 	end)
 
-	SettingsRemote.OnServerEvent:Connect(function(player: Player, settingName: string, value: any)
+	SettingsRemote.OnServerEvent:Connect(function(player: Player, settingName: string, value: boolean)
 		DataService:set(player, { "settings", settingName }, value)
 	end)
 

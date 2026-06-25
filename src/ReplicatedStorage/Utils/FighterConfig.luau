@@ -12,7 +12,7 @@ local FighterConfigTypes = require(RS.Shared.Fighters.Types)
 
 function FighterConfig.get(fighterName: string?)
 	local Fighters = RS.Shared.Fighters
-	local name = fighterName or DataService:get("selectedFighter") or "Brawler" -- Defaults to Brawler
+	local name: string = fighterName or DataService:get("selectedFighter") or "Brawler" -- Defaults to Brawler
 	local fighter = Fighters:FindFirstChild(name)
 	if not fighter then
 		warn(`FighterConfig.get: {name} fighter not found. Defaulting to Brawler.`)

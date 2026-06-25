@@ -69,7 +69,7 @@ function SettingsModule.ToggleVisibility()
 end
 
 function SettingsModule.HandleOptionChecked()
-	local isHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
+	local isHitboxChecked: boolean = DataService:get({ "settings", "isHitboxChecked" })
 	hitboxOptionCheckbox.Text = if isHitboxChecked then "✓" else ""
 	hitboxOptionCheckbox.MouseButton1Down:Connect(function()
 		buttonPress:Play()

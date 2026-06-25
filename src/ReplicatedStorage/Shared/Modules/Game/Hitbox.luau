@@ -12,7 +12,7 @@ local FighterConfigModule = require(RS.Utils.FighterConfig)
 
 function HitboxClientModule.CreateHitbox(humanoidRootPart: BasePart)
 	local fighterConfig = FighterConfigModule.get()
-	local isHitboxChecked = DataService:get({ "settings", "isHitboxChecked" })
+	local isHitboxChecked: boolean = DataService:get({ "settings", "isHitboxChecked" })
 
 	if fighterConfig.Hitbox.HitboxType == "Box" then
 		if isHitboxChecked then
