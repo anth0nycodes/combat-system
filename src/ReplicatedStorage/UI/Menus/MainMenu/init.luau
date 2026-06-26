@@ -36,12 +36,12 @@ local combatContext = RS.Inputs.Combat
 local playButtonAction = RS.Inputs.GUIs.MainMenu.PlayButton
 local creditsButtonAction = RS.Inputs.GUIs.MainMenu.CreditsButton
 
--- Remotes
-local PlayerRemote = RS.Remotes.PlayerRemote :: RemoteEvent
-
 -- SFX
 local buttonPress = RS.Assets.SFX.GuiButtonPress
 local buttonRelease = RS.Assets.SFX.GuiButtonRelease
+
+-- Services
+local GameServiceClient = require(RS.Shared.Services.GameService.GameServiceClient)
 
 -- CameraPart
 local cameraPart = workspace:WaitForChild("CameraPart") :: Part
@@ -79,7 +79,7 @@ function MainMenu.Init()
 
 	playButtonAction.Released:Connect(function()
 		combatContext.Enabled = true
-		PlayerRemote:FireServer("StartGame")
+		(GameServiceClient :: any):StartGame()
 		buttonRelease:Play()
 
 		-- Initialize all main game GUIs

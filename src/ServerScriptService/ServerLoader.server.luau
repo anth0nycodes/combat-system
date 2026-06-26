@@ -39,7 +39,7 @@ for _, service in services:GetChildren() do
 	if serverModuleScript then
 		local success, result = pcall(function()
 			local module = require(serverModuleScript) :: any
-			module.Init()
+			module:Init()
 		end)
 
 		if not success then

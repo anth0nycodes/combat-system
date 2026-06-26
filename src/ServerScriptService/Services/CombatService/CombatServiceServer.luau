@@ -10,11 +10,6 @@ local SSS = game:GetService("ServerScriptService")
 local HitboxServerModule = require(SSS.Modules.Game.Hitbox)
 local FighterConfigModule = require(RS.Utils.FighterConfig)
 
--- Remotes
-local AttackRemote = RS.Remotes.AttackRemote
-local BlockRemote = RS.Remotes.BlockRemote
-local SFXRemote = RS.Remotes.SFXRemote
-
 -- Constants
 local CombatServiceConstants = require(RS.Shared.Services.CombatService.Constants)
 
@@ -24,6 +19,7 @@ local activeRegenTasks: { [Model]: boolean } = {}
 local blockStartTimes: { [Model]: number } = {}
 
 -- Packages
+local Networker = require(RS.Packages.Networker)
 local DataService = require(RS.Packages.DataService).server
 local Janitor = require(RS.Packages.Janitor)
 
@@ -36,6 +32,9 @@ end
 
 local function startBlockRegen(character: Model)
 	local player = Players:GetPlayerFromCharacter(character)
+	if not player then
+		return
+	end
 	local janitor = playerJanitors[player]
 	if not janitor then
 		return
@@ -214,7 +213,13 @@ local function setupPlayer(player: Player)
 	end, true)
 end
 
-function CombatServiceServer.Init()
+function CombatServiceServer.Init(self: CombatServiceServer)
+	self.Networker = Networker.server.new(
+		"CombatService",
+		self,
+		{ self.Attack :: any, self.PlayCombatSFX :: any, self.HandleBlock :: any }
+	)
+
 	Players.PlayerAdded:Connect(setupPlayer)
 	for _, player in Players:GetPlayers() do
 		if playerJanitors[player] then
@@ -231,72 +236,76 @@ function CombatServiceServer.Init()
 		janitor:Destroy()
 		playerJanitors[player] = nil
 	end)
+end
 
-	SFXRemote.OnServerEvent:Connect(function(player: Player, sfxName: string)
-		local fighterConfig = getPlayerFighterConfig(player)
-		local character = player.Character
-		if not character then
-			return
-		end
+function CombatServiceServer.Attack(_self: CombatServiceServer, player: Player, combo: number)
+	local character = player.Character
+	if not character then
+		return
+	end
 
-		local attackerRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
-		local SFX: Sound
-		if sfxName == "Normal" then
-			SFX = fighterConfig.SFX.NormalAttack:Clone()
-		elseif sfxName == "Heavy" then
-			SFX = fighterConfig.SFX.HeavyAttack:Clone()
-		end
-		if not SFX then
-			return
-		end
-		SFX.Parent = attackerRootPart
-		SFX:Play()
-		SFX.Ended:Once(function()
-			SFX:Destroy()
-		end)
-	end)
+	if character:GetAttribute("IsStunned") then -- if the attacker is stunned, they shouldn't be able to attack
+		return
+	end
 
-	AttackRemote.OnServerEvent:Connect(function(player: Player, combo: number)
-		local character = player.Character
-		if not character then
-			return
-		end
+	local hitHumanoids = HitboxServerModule.CreateHitbox(player)
 
-		if character:GetAttribute("IsStunned") then -- if the attacker is stunned, they shouldn't be able to attack
-			return
+	for _, humanoid in hitHumanoids do
+		if humanoid.Health <= 0 then
+			continue
 		end
+		processHit(player, combo, character, humanoid)
+	end
+end
 
-		local hitHumanoids = HitboxServerModule.CreateHitbox(player)
+function CombatServiceServer.PlayCombatSFX(_self: CombatServiceServer, player: Player, sfxName: string)
+	local fighterConfig = getPlayerFighterConfig(player)
+	local character = player.Character
+	if not character then
+		return
+	end
 
-		for _, humanoid in hitHumanoids do
-			if humanoid.Health <= 0 then
-				continue
-			end
-			processHit(player, combo, character, humanoid)
-		end
-	end)
-
-	BlockRemote.OnServerEvent:Connect(function(player: Player, isBlocking: boolean)
-		local character = player.Character
-		if not character then
-			return
-		end
-		-- the isBlocking check is necessary to prevent exploiters from manually sending `true` to the server despite their meter being too low to block
-		if isBlocking and character:GetAttribute("BlockMeter") < CombatServiceConstants.BLOCK_DRAIN_AMOUNT then -- if the player's block meter is too low, they shouldn't be able to block
-			return
-		end
-
-		character:SetAttribute("IsBlocking", isBlocking)
-
-		if isBlocking then
-			blockStartTimes[character] = os.clock()
-		else
-			blockStartTimes[character] = nil
-			if not character:GetAttribute("IsStunned") then
-				startBlockRegen(character)
-			end
-		end
+	local attackerRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
+	local SFX: Sound
+	if sfxName == "Normal" then
+		SFX = fighterConfig.SFX.NormalAttack:Clone()
+	elseif sfxName == "Heavy" then
+		SFX = fighterConfig.SFX.HeavyAttack:Clone()
+	end
+	if not SFX then
+		return
+	end
+	SFX.Parent = attackerRootPart
+	SFX:Play()
+	SFX.Ended:Once(function()
+		SFX:Destroy()
 	end)
 end
 
-return CombatServiceServer
+function CombatServiceServer.HandleBlock(_self: CombatServiceServer, player: Player, isBlocking: boolean)
+	local character = player.Character
+	if not character then
+		return
+	end
+	-- the isBlocking check is necessary to prevent exploiters from manually sending `true` to the server despite their meter being too low to block
+	if isBlocking and character:GetAttribute("BlockMeter") < CombatServiceConstants.BLOCK_DRAIN_AMOUNT then -- if the player's block meter is too low, they shouldn't be able to block
+		return
+	end
+
+	character:SetAttribute("IsBlocking", isBlocking)
+
+	if isBlocking then
+		blockStartTimes[character] = os.clock()
+	else
+		blockStartTimes[character] = nil
+		if not character:GetAttribute("IsStunned") then
+			startBlockRegen(character)
+		end
+	end
+end
+
+type CombatServiceServer = typeof(CombatServiceServer) & {
+	Networker: Networker.Server,
+}
+
+return CombatServiceServer :: CombatServiceServer

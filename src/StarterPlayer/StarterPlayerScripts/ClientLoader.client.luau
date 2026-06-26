@@ -10,7 +10,6 @@ local DataService = require(RS.Packages.DataService).client
 local UI = require(RS.UI)
 
 DataService:init()
-UI()
 
 for _, service in RS.Shared.Services:GetChildren() do
 	local serviceName = service.Name
@@ -30,3 +29,5 @@ for _, service in RS.Shared.Services:GetChildren() do
 		print(`Initialized {clientModuleScript} successfully!`)
 	end
 end
+
+UI()

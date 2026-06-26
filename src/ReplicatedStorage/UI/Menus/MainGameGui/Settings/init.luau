@@ -9,8 +9,8 @@ local Players = game:GetService("Players")
 -- Packages
 local DataService = require(RS.Packages.DataService).client
 
--- Remotes
-local SettingsRemote = RS.Remotes.SettingsRemote :: RemoteEvent
+-- Services
+local GameServiceClient = require(RS.Shared.Services.GameService.GameServiceClient)
 
 -- Player
 local player = Players.LocalPlayer
@@ -78,7 +78,7 @@ function SettingsModule.HandleOptionChecked()
 		buttonRelease:Play()
 		isHitboxChecked = not isHitboxChecked
 		hitboxOptionCheckbox.Text = if isHitboxChecked then "✓" else ""
-		SettingsRemote:FireServer("isHitboxChecked", isHitboxChecked)
+		(GameServiceClient :: any):SetSettings("isHitboxChecked", isHitboxChecked)
 	end)
 end
 

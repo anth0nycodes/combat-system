@@ -4,7 +4,6 @@ local FighterSelectionModule = {}
 -- Game Services
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
-local SG = game:GetService("StarterGui")
 
 -- Types
 local FighterSelectionTypes = require(script.Types)
@@ -14,9 +13,8 @@ local player = Players.LocalPlayer
 assert(player, "Player is not defined")
 local playerGui = player.PlayerGui
 
--- Remotes
-local FighterSelectionRemote = RS.Remotes.FighterSelectionRemote :: RemoteEvent
-local NotificationRemote = RS.Remotes.NotificationRemote :: RemoteEvent
+-- Services
+local GameServiceClient = require(RS.Shared.Services.GameService.GameServiceClient)
 
 -- Inputs
 local toggleFighterListAction = RS.Inputs.GUIs.MainGame.FighterSelectionButton
@@ -37,7 +35,6 @@ local fighterSelectionInputActions = {
 -- SFX
 local buttonPress = RS.Assets.SFX.GuiButtonPress
 local buttonRelease = RS.Assets.SFX.GuiButtonRelease
-local notificationSound = RS.Assets.SFX.Notification
 
 -- Module Config
 local isFighterListOpen = false
@@ -63,15 +60,6 @@ function FighterSelectionModule.Init()
 			FighterSelectionModule.SelectFighter(fighterName)
 		end)
 	end
-
-	NotificationRemote.OnClientEvent:Connect(function(title: string, message: string, duration: number)
-		SG:SetCore("SendNotification", {
-			Title = title,
-			Text = message,
-			Duration = duration,
-		})
-		notificationSound:Play()
-	end)
 end
 
 function FighterSelectionModule.ToggleFighters()
@@ -80,7 +68,7 @@ function FighterSelectionModule.ToggleFighters()
 end
 
 function FighterSelectionModule.SelectFighter(fighterName: string)
-	FighterSelectionRemote:FireServer(fighterName)
+	(GameServiceClient :: any):SetFighterForPlayer(fighterName)
 end
 
 return FighterSelectionModule
