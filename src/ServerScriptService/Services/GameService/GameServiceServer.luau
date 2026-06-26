@@ -25,13 +25,11 @@ local function setupPlayer(player: Player)
 	player:SetAttribute("IsInMainMenu", true)
 
 	local character = player.Character
-	if not character then
-		return
-	end
-
-	local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
-	if humanoidRootPart then
-		humanoidRootPart.Anchored = true
+	if character then
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
+		if humanoidRootPart then
+			humanoidRootPart.Anchored = true
+		end
 	end
 
 	janitor:Add(
