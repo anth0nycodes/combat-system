@@ -37,9 +37,9 @@ local function setupPlayer(player: Player)
 			return
 		end
 
-		local hrp = newCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
-		if hrp then
-			hrp.Anchored = true
+		local humanoidRootPart = newCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
+		if humanoidRootPart then
+			humanoidRootPart.Anchored = true
 		end
 	end)
 
