@@ -9,6 +9,7 @@ local RS = game:GetService("ReplicatedStorage")
 local Networker = require(RS.Packages.Networker)
 local Janitor = require(RS.Packages.Janitor)
 local DataService = require(RS.Packages.DataService).server
+local ConnectionHub = require(RS.Packages.ConnectionHub)
 
 -- Constants
 local GameServiceConstants = require(RS.Shared.Services.GameService.Constants)
@@ -53,28 +54,29 @@ local function setupPlayer(player: Player)
 	end, true)
 end
 
+local function cleanupPlayer(player: Player)
+	local janitor = playerJanitors[player]
+	if not janitor then
+		return
+	end
+	janitor:Destroy()
+	playerJanitors[player] = nil
+end
+
 function GameServiceServer.Init(self: GameServiceServer)
 	self.Networker = Networker.server.new(
 		"GameService",
 		self,
 		{ self.StartGame :: any, self.SetSettings :: any, self.SetFighterForPlayer :: any }
 	)
-	Players.PlayerAdded:Connect(setupPlayer)
+	ConnectionHub.Subscribe(Players, "PlayerAdded", setupPlayer)
 	for _, player in Players:GetPlayers() do
 		if playerJanitors[player] then
 			continue
 		end
 		setupPlayer(player)
 	end
-
-	Players.PlayerRemoving:Connect(function(player: Player)
-		local janitor = playerJanitors[player]
-		if not janitor then
-			return
-		end
-		janitor:Destroy()
-		playerJanitors[player] = nil
-	end)
+	ConnectionHub.Subscribe(Players, "PlayerRemoving", cleanupPlayer)
 end
 
 function GameServiceServer.StartGame(_self: GameServiceServer, player: Player)

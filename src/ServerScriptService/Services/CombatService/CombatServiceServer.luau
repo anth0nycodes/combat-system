@@ -13,6 +13,7 @@ local HitboxServerModule = require(SSS.Modules.Game.Hitbox)
 local Networker = require(RS.Packages.Networker)
 local DataService = require(RS.Packages.DataService).server
 local Janitor = require(RS.Packages.Janitor)
+local ConnectionHub = require(RS.Packages.ConnectionHub)
 
 -- Utils
 local FighterConfig = require(RS.Shared.Utils.FighterConfig)
@@ -212,6 +213,15 @@ local function setupPlayer(player: Player)
 	end, true)
 end
 
+local function cleanupPlayer(player: Player)
+	local janitor = playerJanitors[player]
+	if not janitor then
+		return
+	end
+	janitor:Destroy()
+	playerJanitors[player] = nil
+end
+
 function CombatServiceServer.Init(self: CombatServiceServer)
 	self.Networker = Networker.server.new(
 		"CombatService",
@@ -219,22 +229,14 @@ function CombatServiceServer.Init(self: CombatServiceServer)
 		{ self.Attack :: any, self.PlayCombatSFX :: any, self.HandleBlock :: any }
 	)
 
-	Players.PlayerAdded:Connect(setupPlayer)
+	ConnectionHub.Subscribe(Players, "PlayerAdded", setupPlayer)
 	for _, player in Players:GetPlayers() do
 		if playerJanitors[player] then
 			continue
 		end
 		setupPlayer(player)
 	end
-
-	Players.PlayerRemoving:Connect(function(player: Player)
-		local janitor = playerJanitors[player]
-		if not janitor then
-			return
-		end
-		janitor:Destroy()
-		playerJanitors[player] = nil
-	end)
+	ConnectionHub.Subscribe(Players, "PlayerRemoving", cleanupPlayer)
 end
 
 function CombatServiceServer.Attack(_self: CombatServiceServer, player: Player, combo: number)

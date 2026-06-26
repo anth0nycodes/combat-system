@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 
 -- Packages
 local DataService = require(RS.Packages.DataService).server
+local ConnectionHub = require(RS.Packages.ConnectionHub)
 
 local services = script.Parent.Services
 
@@ -19,7 +20,7 @@ DataService:init({
 	},
 })
 
-Players.PlayerAdded:Connect(function(player: Player)
+local function onPlayerAdded(player: Player)
 	DataService:waitForData(player)
 	local leaderstats = Instance.new("Folder", player)
 	leaderstats.Name = "leaderstats"
@@ -31,7 +32,9 @@ Players.PlayerAdded:Connect(function(player: Player)
 	local totalKills = Instance.new("IntValue", leaderstats)
 	totalKills.Name = "Total Kills"
 	totalKills.Value = DataService:get(player, { "totalKills" })
-end)
+end
+
+ConnectionHub.Subscribe(Players, "PlayerAdded", onPlayerAdded)
 
 for _, service in services:GetChildren() do
 	local serviceName = service.Name
