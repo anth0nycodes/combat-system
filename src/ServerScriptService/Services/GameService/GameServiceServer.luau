@@ -9,6 +9,7 @@ local RS = game:GetService("ReplicatedStorage")
 local Networker = require(RS.Packages.Networker)
 local Janitor = require(RS.Packages.Janitor)
 local DataService = require(RS.Packages.DataService).server
+local ConnectionHub = require(RS.Packages.ConnectionHub)
 
 -- Constants
 local GameServiceConstants = require(RS.Shared.Services.GameService.Constants)
@@ -24,33 +25,37 @@ local function setupPlayer(player: Player)
 	player:SetAttribute("IsInMainMenu", true)
 
 	local character = player.Character
-	if not character then
-		return
+	if character then
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
+		if humanoidRootPart then
+			humanoidRootPart.Anchored = true
+		end
 	end
 
-	local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
-	if humanoidRootPart then
-		humanoidRootPart.Anchored = true
-	end
+	player.CharacterAdded:Connect(function(newCharacter: Model)
+		if not player:GetAttribute("IsInMainMenu") then
+			return
+		end
 
-	janitor:Add(
-		player.CharacterAdded:Connect(function(newCharacter: Model)
-			if not player:GetAttribute("IsInMainMenu") then
-				return
-			end
-
-			local hrp = newCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
-			if hrp then
-				hrp.Anchored = true
-			end
-		end),
-		"Disconnect"
-	)
+		local humanoidRootPart = newCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
+		if humanoidRootPart then
+			humanoidRootPart.Anchored = true
+		end
+	end)
 
 	janitor:Add(function()
 		loadingCharacter[player] = nil
 		fighterSelectionCooldowns[player] = 0
 	end, true)
+end
+
+local function cleanupPlayer(player: Player)
+	local janitor = playerJanitors[player]
+	if not janitor then
+		return
+	end
+	janitor:Destroy()
+	playerJanitors[player] = nil
 end
 
 function GameServiceServer.Init(self: GameServiceServer)
@@ -59,22 +64,14 @@ function GameServiceServer.Init(self: GameServiceServer)
 		self,
 		{ self.StartGame :: any, self.SetSettings :: any, self.SetFighterForPlayer :: any }
 	)
-	Players.PlayerAdded:Connect(setupPlayer)
+	ConnectionHub.Subscribe(Players, "PlayerAdded", setupPlayer)
 	for _, player in Players:GetPlayers() do
 		if playerJanitors[player] then
 			continue
 		end
 		setupPlayer(player)
 	end
-
-	Players.PlayerRemoving:Connect(function(player: Player)
-		local janitor = playerJanitors[player]
-		if not janitor then
-			return
-		end
-		janitor:Destroy()
-		playerJanitors[player] = nil
-	end)
+	ConnectionHub.Subscribe(Players, "PlayerRemoving", cleanupPlayer)
 end
 
 function GameServiceServer.StartGame(_self: GameServiceServer, player: Player)
