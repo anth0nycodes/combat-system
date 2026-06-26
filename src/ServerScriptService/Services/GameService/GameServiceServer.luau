@@ -167,4 +167,4 @@ type GameServiceServer = typeof(GameServiceServer) & {
 	Networker: Networker.Server,
 }
 
-return GameServiceServer
+return GameServiceServer :: GameServiceServer

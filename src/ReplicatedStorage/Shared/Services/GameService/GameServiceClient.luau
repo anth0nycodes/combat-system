@@ -48,4 +48,4 @@ type GameServiceClient = typeof(GameServiceClient) & {
 	Networker: Networker.Client,
 }
 
-return GameServiceClient
+return GameServiceClient :: GameServiceClient
