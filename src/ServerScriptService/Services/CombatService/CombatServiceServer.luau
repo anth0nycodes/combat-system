@@ -74,21 +74,16 @@ local function startBlockRegen(character: Model)
 end
 
 local function setInitialPlayerCombatAttributes(player: Player)
-	local janitor = playerJanitors[player]
-	if not janitor then
-		return
-	end
+	player.CharacterAdded:Connect(function(character)
+		activeRegenTasks[character] = nil
+		blockStartTimes[character] = nil
 
-	janitor:Add(
-		player.CharacterAdded:Connect(function(character)
-			character:SetAttribute("IsBlocking", false)
-			character:SetAttribute("BlockMeter", 100)
-			character:SetAttribute("IsStunned", false)
-			character:SetAttribute("IsParryStunned", false)
-			character:SetAttribute("IsBlockBroken", false)
-		end),
-		"Disconnect"
-	)
+		character:SetAttribute("IsBlocking", false)
+		character:SetAttribute("BlockMeter", 100)
+		character:SetAttribute("IsStunned", false)
+		character:SetAttribute("IsParryStunned", false)
+		character:SetAttribute("IsBlockBroken", false)
+	end)
 end
 
 local function getDamage(player: Player, combo: number, isBlocking: boolean)

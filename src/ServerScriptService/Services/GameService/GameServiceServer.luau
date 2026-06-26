@@ -32,19 +32,16 @@ local function setupPlayer(player: Player)
 		end
 	end
 
-	janitor:Add(
-		player.CharacterAdded:Connect(function(newCharacter: Model)
-			if not player:GetAttribute("IsInMainMenu") then
-				return
-			end
+	player.CharacterAdded:Connect(function(newCharacter: Model)
+		if not player:GetAttribute("IsInMainMenu") then
+			return
+		end
 
-			local hrp = newCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
-			if hrp then
-				hrp.Anchored = true
-			end
-		end),
-		"Disconnect"
-	)
+		local hrp = newCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
+		if hrp then
+			hrp.Anchored = true
+		end
+	end)
 
 	janitor:Add(function()
 		loadingCharacter[player] = nil
