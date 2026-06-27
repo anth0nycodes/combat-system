@@ -4,6 +4,7 @@ local GameServiceServer = {}
 -- Game Services
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 -- Packages
 local Networker = require(RS.Packages.Networker)
@@ -13,6 +14,36 @@ local ConnectionHub = require(RS.Packages.ConnectionHub)
 
 -- Constants
 local GameServiceConstants = require(RS.Shared.Services.GameService.Constants)
+
+-- Types
+local FighterConfigTypes = require(RS.Shared.Fighters.Types)
+
+local function getFighterConfig(fighterName: string): FighterConfigTypes.FighterConfigType
+	local fighterModule = RS.Shared.Fighters:FindFirstChild(fighterName)
+	if not fighterModule then
+		return require(RS.Shared.Fighters.Brawler).FighterConfig
+	end
+	return (require(fighterModule) :: any).FighterConfig
+end
+
+local function giveWeapon(character: Model, weaponName: string)
+	local arm = character:FindFirstChild("Right Arm") :: BasePart
+	if not arm then
+		return
+	end
+	local weaponTemplate = ServerStorage:FindFirstChild(weaponName)
+	if not weaponTemplate then
+		warn(`giveWeapon: weapon "{weaponName}" not found in ServerStorage`)
+		return
+	end
+	local weapon = weaponTemplate:Clone()
+	weapon.CFrame = arm.CFrame * CFrame.new(0, -1, -1.75) * CFrame.Angles(0, math.rad(90), math.rad(-90))
+	weapon.Parent = character
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = arm
+	weld.Part1 = weapon
+	weld.Parent = weapon
+end
 
 local loadingCharacter: { [Player]: boolean } = {}
 local fighterSelectionCooldowns: { [Player]: number } = {}
@@ -33,6 +64,13 @@ local function setupPlayer(player: Player)
 	end
 
 	player.CharacterAdded:Connect(function(newCharacter: Model)
+		DataService:waitForData(player)
+		local selectedFighter = DataService:get(player, { "selectedFighter" })
+		local fighterConfig = getFighterConfig(selectedFighter)
+		if fighterConfig.WeaponName then
+			giveWeapon(newCharacter, fighterConfig.WeaponName)
+		end
+
 		if not player:GetAttribute("IsInMainMenu") then
 			return
 		end

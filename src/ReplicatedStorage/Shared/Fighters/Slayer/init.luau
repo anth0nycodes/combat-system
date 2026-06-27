@@ -30,6 +30,7 @@ Config.FighterConfig = {
 				Lunge = { LungeForce = 18, LungeDuration = 0.2 },
 			},
 		},
+		MovementAnimations = { Idle = SlayerAnimations.Idle },
 		BlockAnimation = SlayerAnimations.Block,
 		BlockBreakAnimation = SlayerAnimations.BlockBreak,
 		ParryStunAnimation = SlayerAnimations.ParryStun,
@@ -55,6 +56,7 @@ Config.FighterConfig = {
 		Size = Vector3.new(8, 8, 8),
 		CFrame = CFrame.new(0, 0, -2.5),
 	} :: FighterTypes.BoxHitboxConfig,
+	WeaponName = "Katana",
 }
 
 return Config

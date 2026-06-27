@@ -27,6 +27,7 @@ Config.FighterConfig = {
 				Lunge = { LungeForce = 18, LungeDuration = 0.2 },
 			},
 		},
+		MovementAnimations = { Idle = BrawlerAnimations.Idle },
 		BlockAnimation = BrawlerAnimations.Block,
 		BlockBreakAnimation = BrawlerAnimations.BlockBreak,
 		ParryStunAnimation = BrawlerAnimations.ParryStun,

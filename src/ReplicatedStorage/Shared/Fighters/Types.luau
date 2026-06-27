@@ -27,6 +27,7 @@ type M1AnimationData = {
 export type FighterConfigType = {
 	Animations: {
 		M1Animations: { M1AnimationData },
+		MovementAnimations: { Idle: Animation },
 		BlockAnimation: Animation,
 		BlockBreakAnimation: Animation,
 		ParryStunAnimation: Animation,
@@ -51,6 +52,7 @@ export type FighterConfigType = {
 	},
 	MaxComboCount: number,
 	Hitbox: HitboxConfig,
+	WeaponName: string?,
 }
 
 export type ConfigType = {
