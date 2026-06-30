@@ -27,22 +27,50 @@ local function getFighterConfig(fighterName: string): FighterConfigTypes.Fighter
 end
 
 local function giveWeapon(character: Model, weaponName: string)
-	local arm = character:FindFirstChild("Right Arm") :: BasePart
+	local arm = character:WaitForChild("Right Arm") :: BasePart
 	if not arm then
 		return
 	end
-	local weaponTemplate = ServerStorage:FindFirstChild(weaponName)
-	if not weaponTemplate then
+	local weaponFolder = ServerStorage:FindFirstChild(`{weaponName}Group`)
+	if not weaponFolder then
 		warn(`giveWeapon: weapon "{weaponName}" not found in ServerStorage`)
 		return
 	end
-	local weapon = weaponTemplate:Clone()
-	weapon.CFrame = arm.CFrame * CFrame.new(0, -1, -1.75) * CFrame.Angles(0, math.rad(90), math.rad(-90))
-	weapon.Parent = character
-	local weld = Instance.new("WeldConstraint")
-	weld.Part0 = arm
-	weld.Part1 = weapon
-	weld.Parent = weapon
+
+	-- Clone parts from folder
+	local handle: BasePart? = nil
+	local weaponMesh: MeshPart? = nil
+	local motor: Motor6D? = nil
+
+	for _, child in weaponFolder:GetChildren() do
+		local clone = child:Clone()
+		if clone:IsA("BasePart") then
+			clone.CanCollide = false
+			clone.Parent = character
+			if clone.Name == "Handle" then
+				handle = clone
+			else
+				weaponMesh = clone
+			end
+		elseif clone:IsA("Motor6D") then
+			motor = clone
+		end
+	end
+
+	if not handle or not weaponMesh or not motor then
+		warn(`giveWeapon: weapon "{weaponName}" is missing required parts`)
+		return
+	end
+
+	local weaponMeshHandleWeld = weaponMesh:FindFirstChildOfClass("Weld")
+	if weaponMeshHandleWeld then
+		weaponMeshHandleWeld.Part0 = weaponMesh
+		weaponMeshHandleWeld.Part1 = handle
+	end
+
+	motor.Part0 = arm
+	motor.Part1 = handle
+	motor.Parent = arm
 end
 
 local loadingCharacter: { [Player]: boolean } = {}
