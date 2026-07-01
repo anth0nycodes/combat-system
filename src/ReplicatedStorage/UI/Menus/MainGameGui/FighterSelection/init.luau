@@ -25,12 +25,10 @@ local fighterSelectionGui = fighterSelectionGuiTemplate:Clone()
 local fighterSelectionButton = fighterSelectionGui.Container.FighterSelectionButton
 local fighterList = fighterSelectionGui.Container.FighterList
 local BrawlerButton = fighterList.Brawler
-local HomerunButton = fighterList.Homerun
 local SlayerButton = fighterList.Slayer
-local fighterButtons = { Brawler = BrawlerButton, Homerun = HomerunButton, Slayer = SlayerButton }
+local fighterButtons = { Brawler = BrawlerButton, Slayer = SlayerButton }
 local fighterSelectionInputActions = {
 	Brawler = RS.Inputs.GUIs.MainGame.Fighters.Brawler,
-	Homerun = RS.Inputs.GUIs.MainGame.Fighters.Homerun,
 	Slayer = RS.Inputs.GUIs.MainGame.Fighters.Slayer,
 }
 
