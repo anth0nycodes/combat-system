@@ -53,7 +53,6 @@ function HitboxServerModule.CreateHitbox(player: Player)
 		end
 	end
 
-	-- TODO: Implement weapon and projectile hitbox types
 	if fighterConfig.Hitbox.HitboxType == "Weapon" then
 		print("Weapon hitbox type is not yet implemented.")
 	end
